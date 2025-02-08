@@ -1,4 +1,4 @@
-from links import rn
+import random as rn
 
 class Armor:
     '''Первичный класс для брони'''

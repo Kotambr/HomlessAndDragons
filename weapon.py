@@ -1,4 +1,4 @@
-from links import rn
+import random as rn
 
 class Weapon:
     def __init__(self, type_weapon, damage: int, weapon_count: int):

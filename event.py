@@ -68,14 +68,14 @@ class ChestEvent(Event):
         super().__init__(player)
         self.items = items
         self.mimick = [
-            self.enemy_factory.create_enemy('Сундук', 100, 10, 10),
-            self.enemy_factory.create_enemy('Бочка', 100, 10, 10),
-            self.enemy_factory.create_enemy('Комод', 100, 10, 10),
+            self.enemy_factory.create_enemy('Мимик-Сундук', 100, 10, 10),
+            self.enemy_factory.create_enemy('Мимик-Бочка', 100, 10, 10),
+            self.enemy_factory.create_enemy('Мимик-Комод', 100, 10, 10),
         ]
         self.battle = BattleEvent(player=player)
         self.game_over = False
         self.events_chest = [
-            {'name': 'mimick', 'chance': 20, 'funck': lambda : self.battle.action(rn.choice(self.mimick))},
+            {'name': 'mimick', 'chance': 20, 'funck': lambda: self.battle.action(rn.choice(self.mimick))},
             {'name': 'item', 'chance': 30, 'funck': lambda: self.items.find_item(self.player)},
             {'name': 'nothing', 'chance': 30, 'funck': lambda: self.print_message('Вы ничего не нашли')},
             {'name': 'death', 'chance': 1, 'funck': lambda: self.print_message('помер')},
@@ -83,27 +83,40 @@ class ChestEvent(Event):
         ]
 
     def choise(self):
-        choice = input('Вы нашли сундук! Открыть? \n(1) Да \n(2) Нет! \n')
+        result = self.event_in_chest()
+        if result is None:
+            self.print_message('Ничего не произошло.')
+            return
+
+        self.event_name, self.is_mimick, self.mimick_obj = result
+        if self.is_mimick == "mimick":
+            choice = input(f'Вы нашли {self.mimick_obj.name[:6]}! Открыть? \n(1) Да \n(2) Нет! \n')
+        else:
+            choice = input('Вы нашли сундук! Открыть? \n(1) Да \n(2) Нет! \n')
+        
         actions = [
-            {'number': '1', 'funck': lambda: self.open_chest()},
+            {'number': '1', 'funck': lambda: self.event_name()},
             {'number': '2', 'funck': lambda: self.print_message('Вы уходите')}
         ]
         for act in actions:
             if act['number'] == choice:
                 act['funck']()
-            else:
-                self.print_message('Неверный выбор')
+                break
+        else:
+            self.print_message('Неверный выбор')
 
-    def open_chest(self):
+    def event_in_chest(self):
         roll = rn.randint(1, 100)
         cumulative_chance = 0
 
         for event in self.events_chest:
             cumulative_chance += event["chance"]
             if roll <= cumulative_chance:
-                event["funck"]() 
-                return
-        self.print_message("Ничего не произошло.")
+                if event["name"] == "mimick":
+                    mimick_obj = rn.choice(self.mimick)
+                    return event["funck"], event["name"], mimick_obj
+                return event["funck"], event["name"], None
+        return None
 
 class BattleEvent(Event):
     def __init__(self, player):
@@ -115,29 +128,12 @@ class BattleEvent(Event):
             {'number': '3', 'func': lambda enemy: self.mage_attack(self.player, enemy),'enemy': True},
             {'number': '4', 'func': lambda: self.open_inventory(), 'enemy': False}
         ]
-<<<<<<< HEAD
-        self.enemies = [
-            self.create_random_enemy(),
-            self.create_random_enemy(),
-            self.create_random_enemy()
-        ]
-        self.enemy_action = [
-            {'action': 'attack', 'func': lambda player: self.enemies[0].attack_enemy(player), 'player': True},
-            {'action': 'flee', 'func': lambda: self.enemies[0].flee(), 'player': False},
-            {'action': 'buff', 'func': lambda: self.enemies[0].use_potion(), 'player': False}
-        ]
-=======
         self.enemies = []
         self.enemy_action = [
             {'action': 'attack', 'func': lambda player: self.enemies.attack_enemy(player), 'player': True},
             {'action': 'flee', 'func': lambda: self.enemies.flee(), 'player': False},
             {'action': 'buff', 'func': lambda: self.enemies.use_potion(), 'player': False}
 ]       
-    def create_enemies(self):
-        if not self.enemies:
-            self.enemies = [self.create_random_enemy() for _ in range(3)]
-
->>>>>>> 6068af9 (Изменение боёвки)
 
     def attack(self, enemy):
         """
@@ -151,10 +147,6 @@ class BattleEvent(Event):
             curses.wrapper(animate_attack, enemy, self.player, self.player, enemy)
             enemy.attack_enemy(self.player)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 6068af9 (Изменение боёвки)
     def run(self, enemy):
         """
         Попытка сбежать от врага. Если сбежать удалось, возвращается True.
@@ -163,10 +155,6 @@ class BattleEvent(Event):
         curses.wrapper(animate_run)
         if self.player.roll_action: 
             self.print_message('Вы успешно сбежали!')
-<<<<<<< HEAD
-=======
-
->>>>>>> 6068af9 (Изменение боёвки)
             return True
         else:
             self.print_message('Вы не смогли сбежать! Враг атакует!')
@@ -186,19 +174,15 @@ class BattleEvent(Event):
         self.print_message('')
         curses.wrapper(animate_magic, player, enemy)
         player.cast_spell(spell_name, player, enemy)
-<<<<<<< HEAD
-=======
         if not enemy.is_alive():
             self.enemies.remove(enemy)
             self.print_message(f'{enemy.name} побежден и удален из списка врагов.')
->>>>>>> 6068af9 (Изменение боёвки)
 
     def open_inventory(self):
         """
         Открытие инвентаря игрока.
         """
         self.print_message('Открытие инвентаря...')
-        # curses.wrapper(animate_inventory)
         self.player.inventory.show_inventory()
 
     def action(self, enemy):
@@ -206,10 +190,6 @@ class BattleEvent(Event):
         Выводит доступные действия игрока в бою.
         :param enemy: Объект врага, с которым идёт бой.
         """
-<<<<<<< HEAD
-=======
-        enemy = self.create_random_enemy()
->>>>>>> 6068af9 (Изменение боёвки)
         self.print_message(f"Вы вступили в бой с {enemy.name}!")
 
         self.enemy_action = [
@@ -269,7 +249,7 @@ class BattleEvent(Event):
                 self.print_message("Игра окончена. Вы проиграли.")
                 return
 
-class MimicEvent(Event):
+class MimicEvent(BattleEvent):
     def __init__(self, player):
         super().__init__(player)
         self.player = player
@@ -283,18 +263,9 @@ class MimicEvent(Event):
 
     def encounter_mimic(self):
         print(f"Вы нашли {self.mimic.name}. Вы можете пройти мимо или взаимодействовать с ним.")
-        action = input("Введите 'взаимодействовать' чтобы взаимодействовать или 'пройти' чтобы пройти мимо: ")
-        if action.lower() == 'взаимодействовать':
+        action = input(" '1' чтобы взаимодействовать или '2' чтобы пройти мимо: ")
+        if action.lower() == '1':
             print(f"Мимик атакует! Начинается битва с {self.mimic.name}.")
-            # Логика битвы с мимиком
         else:
             print("Вы прошли мимо мимика.")
 
-<<<<<<< HEAD
-# Пример использования
-if __name__ == '__main__':
-    player = None  # Здесь должен быть объект игрока
-    event = MimicEvent(player)
-    event.encounter_mimic()
-=======
->>>>>>> 6068af9 (Изменение боёвки)

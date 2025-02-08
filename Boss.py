@@ -1,5 +1,5 @@
 from Charecter import Enemy
-from links import rn
+import random as rn
 from Item import Item
 from weapon import Weapon
 from armor import Armor

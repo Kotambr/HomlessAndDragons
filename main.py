@@ -3,7 +3,7 @@ from Charecter import Player
 from event import Event, BattleEvent, ChestEvent
 from Item import Item
 from Location import LocationManager
-from links import rn
+import random as rn
 
 class Game:
     def __init__(self):
@@ -14,8 +14,9 @@ class Game:
         self.chest_event = ChestEvent(player=self.player, items=self.items)
         self.battle = BattleEvent(self.player)
         self.travel = LocationManager(self.player)
+        self.event = Event(self.player)
         self.events = {
-            'enemy': lambda: self.battle.action(enemy=self.battle.enemies),
+            'enemy': lambda: self.battle.action(enemy=self.event.create_random_enemy()),
             'item': lambda : self.items.find_item(self.player),
             'nothing': lambda: self.print_message('Ничего не произошло'),
             'chest': self.chest_event.choise,
@@ -37,8 +38,8 @@ class Game:
     def play(self):
         self.print_message('Игра началась, выживет сильнейший')
         while not self.game_over:
-            event = Event(self.player)
-            event_name = event.roll_event()
+            
+            event_name = self.event.roll_event()
             if event_name in self.events:
                 self.events[event_name]()
             else:

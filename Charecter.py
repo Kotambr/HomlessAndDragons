@@ -3,25 +3,15 @@ import random as rn
         
 class Character():
     '''Основной класс для работы с персонажами'''
-<<<<<<< HEAD
-    def __init__(self, name: str, hp: int, damage: int, manabank: int):
-=======
     def __init__(self, name: str, hp: int, damage: int, manabank: int, spells: list = []):
->>>>>>> 6068af9 (Изменение боёвки)
         self.name = name
         self.hp = hp
         self.damage = damage
         self.manabank = manabank
         self.max_hp = hp
-<<<<<<< HEAD
-        self.spells = []
-        self.inventory = Inventory()
-        self.gold = 0
-=======
         self.inventory = Inventory()
         self.gold = 0
         self.spells = spells
->>>>>>> 6068af9 (Изменение боёвки)
 
     def is_alive(self):
         return self.hp > 0 
@@ -50,11 +40,7 @@ class Character():
     def info (self):
         print(f'У него: {self.hp} здоровья\n {self.damage} урона')
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 6068af9 (Изменение боёвки)
-    def roll_action():
+    def roll_action(self):
         """
         Определяет результат случайного события (например, успешность побега).
         Возвращает True для успеха, False для неудачи.
@@ -90,13 +76,8 @@ class Player(Character):
         print(f"Экипирована броня с поглощением урона: {armor.absorption}.")
 
 class Enemy(Character):
-<<<<<<< HEAD
-    def __init__(self, name: str, hp: int, damage: int, manabank: int):
-        super().__init__(name, hp, damage, manabank)
-=======
     def __init__(self, name, hp, damage, manabank, spells = []):
         super().__init__(name, hp, damage, manabank, spells)
->>>>>>> 6068af9 (Изменение боёвки)
         self.alive = True
         self.inventory.add_poition_enemy(PotionFactory.give_random_potion().to_dict())
 
@@ -124,7 +105,7 @@ class Enemy(Character):
     
     def flee(self):
         """Попытка покинуть поле боя."""
-        if self.roll_action():
+        if self.roll_action() == True:
             print(f"{self.name} убегает с поля боя!")
             self.alive = False
             return True
@@ -161,7 +142,5 @@ class Enemy(Character):
             else:
                 print(f"{self.name} атакует!")
                 return "attack"
-
-        # Если враг в выгодной позиции
         print(f"{self.name} атакует!")
         return "attack"
