@@ -9,13 +9,13 @@ class Game:
     def __init__(self):
         self.message_count = 0
         self.game_over = False
-        self.player = Player(name='Hero', hp=1000, damage=100, manabank=100)
+        self.player = Player(name='Илюха', hp=1000, damage=100, manabank=100)
         self.items = Item()
         self.chest_event = ChestEvent(player=self.player, items=self.items)
         self.battle = BattleEvent(self.player)
         self.travel = LocationManager(self.player)
         self.events = {
-            'enemy': lambda: self.battle.action(enemy=rn.choice(self.battle.enemy)),
+            'enemy': lambda: self.battle.action(enemy=self.battle.enemies),
             'item': lambda : self.items.find_item(self.player),
             'nothing': lambda: self.print_message('Ничего не произошло'),
             'chest': self.chest_event.choise,
@@ -53,3 +53,4 @@ if __name__ == '__main__':
 # Рандомизация изображения в пределах. Кривая Бузье.
 # Цель игры победить босса (опционально)
 #TODO Диаграммы классов
+# Для примера

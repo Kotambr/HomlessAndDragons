@@ -115,6 +115,7 @@ class BattleEvent(Event):
             {'number': '3', 'func': lambda enemy: self.mage_attack(self.player, enemy),'enemy': True},
             {'number': '4', 'func': lambda: self.open_inventory(), 'enemy': False}
         ]
+<<<<<<< HEAD
         self.enemies = [
             self.create_random_enemy(),
             self.create_random_enemy(),
@@ -125,6 +126,18 @@ class BattleEvent(Event):
             {'action': 'flee', 'func': lambda: self.enemies[0].flee(), 'player': False},
             {'action': 'buff', 'func': lambda: self.enemies[0].use_potion(), 'player': False}
         ]
+=======
+        self.enemies = []
+        self.enemy_action = [
+            {'action': 'attack', 'func': lambda player: self.enemies.attack_enemy(player), 'player': True},
+            {'action': 'flee', 'func': lambda: self.enemies.flee(), 'player': False},
+            {'action': 'buff', 'func': lambda: self.enemies.use_potion(), 'player': False}
+]       
+    def create_enemies(self):
+        if not self.enemies:
+            self.enemies = [self.create_random_enemy() for _ in range(3)]
+
+>>>>>>> 6068af9 (Изменение боёвки)
 
     def attack(self, enemy):
         """
@@ -138,6 +151,10 @@ class BattleEvent(Event):
             curses.wrapper(animate_attack, enemy, self.player, self.player, enemy)
             enemy.attack_enemy(self.player)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6068af9 (Изменение боёвки)
     def run(self, enemy):
         """
         Попытка сбежать от врага. Если сбежать удалось, возвращается True.
@@ -146,6 +163,10 @@ class BattleEvent(Event):
         curses.wrapper(animate_run)
         if self.player.roll_action: 
             self.print_message('Вы успешно сбежали!')
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6068af9 (Изменение боёвки)
             return True
         else:
             self.print_message('Вы не смогли сбежать! Враг атакует!')
@@ -165,6 +186,12 @@ class BattleEvent(Event):
         self.print_message('')
         curses.wrapper(animate_magic, player, enemy)
         player.cast_spell(spell_name, player, enemy)
+<<<<<<< HEAD
+=======
+        if not enemy.is_alive():
+            self.enemies.remove(enemy)
+            self.print_message(f'{enemy.name} побежден и удален из списка врагов.')
+>>>>>>> 6068af9 (Изменение боёвки)
 
     def open_inventory(self):
         """
@@ -179,6 +206,10 @@ class BattleEvent(Event):
         Выводит доступные действия игрока в бою.
         :param enemy: Объект врага, с которым идёт бой.
         """
+<<<<<<< HEAD
+=======
+        enemy = self.create_random_enemy()
+>>>>>>> 6068af9 (Изменение боёвки)
         self.print_message(f"Вы вступили в бой с {enemy.name}!")
 
         self.enemy_action = [
@@ -259,8 +290,11 @@ class MimicEvent(Event):
         else:
             print("Вы прошли мимо мимика.")
 
+<<<<<<< HEAD
 # Пример использования
 if __name__ == '__main__':
     player = None  # Здесь должен быть объект игрока
     event = MimicEvent(player)
     event.encounter_mimic()
+=======
+>>>>>>> 6068af9 (Изменение боёвки)

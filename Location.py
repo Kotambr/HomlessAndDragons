@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from links import rn
+=======
+import random as rn
+>>>>>>> 6068af9 (Изменение боёвки)
 from event import BattleEvent
 from NPC import Merchant, Quest
 from Charecter import Enemy
