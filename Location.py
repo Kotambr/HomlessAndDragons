@@ -4,25 +4,18 @@ from NPC import Merchant, Quest
 from Charecter import Enemy
 from Boss import Lich, BossBattleEvent
 
+
 class Location():
     def __init__(self, player, name: str, description: str):
         self.player = player
         self.name = name
         self.description = description
-        self.event = []
-  
-    def triger_event(self):
-        """Запускает случайное событие в локации."""
-        if not self.event:
-            print("В этой локации ничего не происходит.")
-            return
-        event = rn.choice(self.event)
-        event(self.player)
+        self.events = []
 
     def enter_location(self):
-        '''Метод, вызываемый при входе в локацию'''
+        """Метод, вызываемый при входе в локацию"""
         print(f'{self.player.name} входит в локацию {self.name}')
-        self.triger_event()
+        self.location_loop()
 
     def solve_riddle(self, player):
         """Игрок решает загадку и получает награду."""
@@ -62,11 +55,35 @@ class Location():
         print(f"Вы нашли {resource['count']} единиц ресурса: {resource['name']}.")
         player.inventory.add_item({"name": resource["name"], "count": resource["count"]})
 
+    def location_loop(self):
+        flag_player = False
+        event_counter = 0
+        while not flag_player:
+            print(f'Вы оказались в {self.name}. Первым делом вы решаетесь...\n')
+            for i, event in enumerate(self.events, start=1):
+                print(f"{i}. {event['name']}")
+            try:
+                player_choice = int(input("Выберите действие: "))
+            except ValueError:
+                print("Ошибка: введите число!")
+                continue
+            for act in self.events:
+                if act.get('number') == player_choice:
+                    act['func']()
+                    event_counter +=1
+                    break
+            else:
+                print("Неверный выбор. Попробуйте снова.")
+            if event_counter == 5:
+                print("Вы нашли выход из лакуны. Вы решили покинуть локацию.")
+                flag_player = True
+
 class AbandonedTemple(Location):
     '''Локация Храм'''
     def __init__(self, player, name: str, description: str):
         super().__init__(player, name, description)
-        self.events = [self.solve_riddle, self.hidden_treasure]
+        self.events = [{'number': 1, 'name': 'Загадка на полу', 'func': lambda: self.solve_riddle},
+                      {'number': 2, 'name': 'Разграбить храм', 'func': lambda: self.hidden_treasure}]
 
     def hidden_treasure(self):
         """Скрытое сокровище в храме."""
@@ -94,7 +111,10 @@ class CampfireLocation(Location):
                 )
             ]
         )
-        self.events = [self.rest, self.encounter_enemy, self.visit_trader]
+        self.events = [{'number': 1, 'name': 'Отдохнуть', 'func': self.rest},
+                       {'number': 2, 'name': 'Прогуляться', 'func': self.encounter_enemy},
+                       {'number': 3, 'name': 'Поторговать', 'func': self.visit_trader}
+        ]
 
     def rest(self):
         """Восстановление здоровья у костра."""
@@ -129,12 +149,16 @@ class ForestLocation(Location):
     def __init__(self, player, name: str, description: str):
         super().__init__(player, name, description)
         self.events = [self.find_herbs, self.encounter_enemy]
+        self.events = [{'number': 1,'name': 'Собрать травы', 'func': lambda: self.find_herbs},
+                       {'number': 2,'name': 'Прогуляться', 'func': lambda: self.encounter_enemy}
+        ]
 
     def find_herbs(self):
         """Поиск трав в лесу."""
         herbs_found = rn.randint(1, 5)
         print(f"Вы находите {herbs_found} лечебных трав.")
         self.player.inventory.add_item({"name": "Гриб", "count": herbs_found})
+        return
 
     def encounter_enemy(self):
         """Встреча с врагом в лесу."""
@@ -276,3 +300,8 @@ class LocationManager:
         self.list_locations()
         choice = input("Введите название локации, куда хотите отправиться: ")
         self.enter_location(choice)
+
+from Charecter import Player
+Playere = Player('1',10,10,10)
+forest = ForestLocation(Player,None,None)
+forest.location_loop()
