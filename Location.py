@@ -1,9 +1,8 @@
 import random as rn
 from event import BattleEvent
-from NPC import Merchant, Quest
+from NPC import Merchant, Quest, Craftsman, Citizen
 from Charecter import Enemy
 from Boss import Lich, BossBattleEvent
-
 
 class Location():
     def __init__(self, player, name: str, description: str):
@@ -57,7 +56,6 @@ class Location():
 
     def location_loop(self):
         flag_player = False
-        event_counter = 0
         while not flag_player:
             print(f'Вы оказались в {self.name}. Первым делом вы решаетесь...\n')
             for i, event in enumerate(self.events, start=1):
@@ -70,12 +68,11 @@ class Location():
             for act in self.events:
                 if act.get('number') == player_choice:
                     act['func']()
-                    event_counter +=1
                     break
             else:
                 print("Неверный выбор. Попробуйте снова.")
-            if event_counter == 5:
-                print("Вы нашли выход из лакуны. Вы решили покинуть локацию.")
+            choice = input("Хотите остаться в локации? (да/нет): ")
+            if choice.lower() not in ["да", "yes"]:
                 flag_player = True
 
 class AbandonedTemple(Location):
@@ -176,7 +173,9 @@ class MountainRegion(Location):
     '''Горы. Охота и битвы'''
     def __init__(self, player, name: str, description: str):
         super().__init__(player, name, description)
-        self.events = [self.gather_resources, self.wild_animal_attack]
+        self.events = [{'number': 1,'name': 'Поиск ресурсов', 'func': lambda: self.gather_resources},
+                       {'number': 2,'name': 'Прогуляться', 'func': lambda: self.wild_animal_attack}
+        ]
 
     def wild_animal_attack(self):
         """На игрока нападает дикое животное."""
@@ -195,6 +194,9 @@ class HiddenSanctuary(Location):
     def __init__(self, player, name: str, description: str):
         super().__init__(player, name, description)
         self.events = [self.find_rare_item, self.mystic_event]
+        self.events = [{'number': 1,'name': 'Поиск ресурсов', 'func': lambda: self.gather_resources},
+                       {'number': 2,'name': 'Прогуляться', 'func': lambda: self.mystic_event}
+        ]
 
     def mystic_event(self):
         """Событие в святилище."""
@@ -215,6 +217,9 @@ class FishingVillage(Location):
     def __init__(self, player, name: str, description: str):
         super().__init__(player, name, description)
         self.events = [self.fishing_event, self.visit_fisherman]
+        self.events = [{'number': 1,'name': 'Порыбачить', 'func': lambda: self.gather_resources},
+                       {'number': 2,'name': 'Зайти к торговцу', 'func': lambda: self.visit_fisherman}
+        ]
 
     def fishing_event(self):
         """Рыбалка."""
@@ -236,7 +241,10 @@ class Graveyard(Location):
     '''Кладбище. Локация с боссом и возможностью лута'''
     def __init__(self, player, name, description):
         super().__init__(player, name, description)
-        self.event = [self.bossBattle]
+        self.events = [{'number': 1,'name': 'Войти в Крипту', 'func': lambda: self.bossBattle},
+                       {'number': 2,'name': 'Разграбить могилы', 'func': lambda: self.loot_a_grave},
+                       {'number': 3,'name': 'Прогуляться', 'func': lambda: self.fight_at_mortal}
+        ]
         self.Lich = Lich("Лич", hp=400, damage=20, manabank=100,
             loot=None)
         self.battle = BossBattleEvent(player, self.Lich)
@@ -255,7 +263,42 @@ class Graveyard(Location):
 
 class City(Location):
     '''Город. Локация с большим количеством NPC'''
-    pass
+    def __init__(self, player, name: str, description: str):
+        super().__init__(player, name, description)
+        self.merchants = [Merchant(name="Торговец", inventory=self.create_merchant_inventory())]
+        self.craftsmen = [Craftsman(name="Кузнец"), Craftsman(name="Бронник")]
+        self.citizens = [Citizen(name="Горожанин 1"), Citizen(name="Горожанин 2")]
+        self.events = [
+            {'number': 1, 'name': 'Поговорить с торговцем', 'func': self.talk_to_merchant},
+            {'number': 2, 'name': 'Поговорить с ремесленником', 'func': self.talk_to_craftsman},
+            {'number': 3, 'name': 'Поговорить с горожанином', 'func': self.talk_to_citizen}
+        ]
+
+    def create_merchant_inventory(self):
+        """Создает инвентарь для торговца."""
+        return [
+            {"name": "Зелье здоровья", "price": 10},
+            {"name": "Меч", "price": 50},
+            {"name": "Щит", "price": 30}
+        ]
+
+    def talk_to_merchant(self):
+        """Взаимодействие с торговцем."""
+        merchant = rn.choice(self.merchants)
+        print(f"Вы встречаете {merchant.name}.")
+        merchant.interact(self.player)
+
+    def talk_to_craftsman(self):
+        """Взаимодействие с ремесленником."""
+        craftsman = rn.choice(self.craftsmen)
+        print(f"Вы встречаете {craftsman.name}.")
+        craftsman.interact(self.player)
+
+    def talk_to_citizen(self):
+        """Взаимодействие с горожанином."""
+        citizen = rn.choice(self.citizens)
+        print(f"Вы встречаете {citizen.name}.")
+        citizen.interact(self.player)
 
 class TheFort(Location):
     '''Форт. Встречаются задания на мобов, так же есть торговцы'''
@@ -271,10 +314,13 @@ class LocationManager:
         self.current_location = None  # Текущая локация игрока
         self.location_list = [
             AbandonedTemple(player, "Заброшенный Храм", "Древнее место, полное загадок и сокровищ."),
-            MountainRegion(player, "Горы", "Опасный регион с дикими животными."),
             FishingVillage(player, "Рыбацкая Деревня", "Тихое место для отдыха и рыбалки."),
-            HiddenSanctuary(player, "Святилище", "Мистическое место, скрытое от глаз."),
-            Graveyard(player, 'Кладбище', 'Тишина и мрак окутывают захоронения')
+            Graveyard(player, 'Кладбище', 'Тишина и мрак окутывают захоронения'),
+            CampfireLocation(player,'Лагерь', 'Огонёк, защищающий путников от Тьмы'),
+            ForestLocation(player, 'Лес', 'Древний, словно сами Лакуны'),
+            MountainRegion(player, 'Горы', 'Когда то тут, пали великаны'),
+            HiddenSanctuary(player, 'Храм Ушедшего Бога', 'Прихожане, давно не молятся своему Господину'),
+            City(player, "Город", "Большой город с множеством NPC."),
         ]
 
     def enter_location(self, location_name: str):
@@ -301,7 +347,7 @@ class LocationManager:
         choice = input("Введите название локации, куда хотите отправиться: ")
         self.enter_location(choice)
 
-from Charecter import Player
-Playere = Player('1',10,10,10)
-forest = ForestLocation(Player,None,None)
-forest.location_loop()
+# from Charecter import Player
+# Playere = Player('1',10,10,10)
+# forest = ForestLocation(Player,None,None)
+# forest.location_loop()
