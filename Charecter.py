@@ -1,6 +1,6 @@
 from Item import Inventory, Potion, PotionFactory
 import random as rn
-        
+
 class Character():
     '''Основной класс для работы с персонажами'''
     def __init__(self, name: str, hp: int, damage: int, manabank: int, spells: list = []):
@@ -11,19 +11,41 @@ class Character():
         self.max_hp = hp
         self.inventory = Inventory()
         self.gold = 0
-        self.spells = spells
+        self.spells = spells if spells is not None else []
+        self.weapon = None
+        self.armor_set = {
+            'helmet': None,
+            'chestplate': None,
+            'leggings': None,
+            'boots': None
+        }
 
     def is_alive(self):
         return self.hp > 0 
     
     def take_damage(self, damage: int):
-        self.hp -= damage
-        print(f'{self.name} получает {damage}. У {self.name} остаётся {self.hp}')
+        total_damage = damage
+        if any(self.armor_set.values()):
+            total_absorption = sum(armor.absorption for armor in self.armor_set.values() if armor)
+            total_damage = max(0, damage - total_absorption)
+            for armor in self.armor_set.values():
+                if armor:
+                    armor.durability -= damage // len(self.armor_set)
+                    if armor.durability <= 0:
+                        print(f"{armor.name} сломалась!")
+                        self.armor_set = {k: None if v == armor else v for k, v in self.armor_set.items()}
+        self.hp -= total_damage
+        print(f'{self.name} получает {total_damage} урона. У {self.name} остаётся {self.hp}')
         if self.hp <= 0:
             print(f"{self.name} помер")
 
     def attack_enemy(self, enemy):
-        enemy.take_damage(self.damage)
+        total_damage = self.damage
+        if self.weapon:
+            total_damage += self.weapon.damage
+            if hasattr(self.weapon, 'effect'):
+                self.weapon.effect(enemy)
+        enemy.take_damage(total_damage)
 
     def learn_spell(self, spell):
         list(set(self.spells))
@@ -59,7 +81,11 @@ class Player(Character):
         self.quests = []
 
     def attack_enemy(self, enemy):
-        enemy.take_damage(self.damage)
+        total_damage = self.damage
+        if self.weapon:
+            if hasattr(self.weapon, 'effect'):
+                self.weapon.effect(enemy)
+        enemy.take_damage(total_damage)
 
     def info (self):
         print(f'У персонажа: {self.hp} здоровья\n {self.damage} урона')
@@ -72,8 +98,8 @@ class Player(Character):
 
     def equip_armor(self, armor):
         """Экипирует броню."""
-        self.armor = armor
-        print(f"Экипирована броня с поглощением урона: {armor.absorption}.")
+        self.armor_set[armor.type] = armor
+        print(f"Экипирована броня: {armor.name} с поглощением урона: {armor.absorption}.")
 
 class Enemy(Character):
     def __init__(self, name, hp, damage, manabank, spells = []):
@@ -82,8 +108,18 @@ class Enemy(Character):
         self.inventory.add_poition_enemy(PotionFactory.give_random_potion().to_dict())
 
     def take_damage(self, amount):
-        self.hp -= amount
-        print(f"{self.name} получает {amount} урона. Текущее здоровье: {self.hp}.")
+        total_damage = amount
+        if any(self.armor_set.values()):
+            total_absorption = sum(armor.absorption for armor in self.armor_set.values() if armor)
+            total_damage = max(0, amount - total_absorption)
+            for armor in self.armor_set.values():
+                if armor:
+                    armor.durability -= amount // len([a for a in self.armor_set.values() if a])
+                    if armor.durability <= 0:
+                        print(f"{armor.name} сломалась!")
+                        self.armor_set = {k: None if v == armor else v for k, v in self.armor_set.items()}
+        self.hp -= total_damage
+        print(f"{self.name} получает {total_damage} урона. Текущее здоровье: {self.hp}.")
         if self.hp <= 0:
             print(f"{self.name} погиб.")
             self.alive = False
@@ -127,7 +163,7 @@ class Enemy(Character):
                 return "flee"
 
         # Если манапул позволяет, враг может использовать магию
-        if self.manabank >= 10 and rn.random() < 0.3:  # 30% шанс на использование магии
+        if self.manabank >= 10 and self.spells and rn.random() < 0.3:  # 30% шанс на использование магии
             spell = rn.choice(self.spells)  # Случайное заклинание
             print(f"{self.name} использует магию: {spell}!")
             self.cast_spell(spell, player)
