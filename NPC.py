@@ -1,6 +1,10 @@
 from Item import Item, Inventory
 import random as rn
 from event import Event
+from armor import Helmet as Hel
+from armor import Armor
+from weapon import Weapon
+from weapon import Sword
 
 class NPC:
     def __init__(self, name, description, actions=None):
@@ -174,11 +178,57 @@ class Blacksmith(NPC):
         super().__init__(name, description, actions)
 
     def repair(self, player):
-        pass
+            """Ремонтирует предметы игрока."""
+            repairable_items = []
+            print("Ваши предметы:")
+            for i, armor in enumerate(player.armor_set.values(), 1):
+                if armor:
+                    print(f"({i}) {armor.name} - Прочность: {armor.durability}/{armor.max_durability}")
+                    repairable_items.append(armor)
+            if player.weapon:
+                print(f"({len(repairable_items) + 1}) {player.weapon.name} - Прочность: {player.weapon.durability}/{player.weapon.max_durability}")
+                repairable_items.append(player.weapon)
+            choice = input("Что хотите починить? (0 для отмены): ")
+            if choice == "0":
+                return
+            if choice.isdigit() and 1 <= int(choice) <= len(repairable_items):
+                item = repairable_items[int(choice) - 1]
+                repair_cost = item.price // 2
+                if player.gold >= repair_cost:
+                    player.gold -= repair_cost
+                    item.durability = item.max_durability
+                    print(f"Вы починили {item.name} за {repair_cost} монет.")
+                else:
+                    print("У вас недостаточно монет.")
+            else:
+                print("Неверный выбор.")
 
     def upgrade(self, player):
-        pass
-    
+        """Улучшает предметы игрока."""
+        upgradeteble_items = []
+        print("Ваши предметы:")
+        for i, armor in enumerate(player.armor_set, 1):
+                print(f"({len(upgradeteble_items) + 1}) {player.armor.name} - Уровень: {player.armor.upgrade_lvl}")
+                upgradeteble_items.append(player.armor)
+        for i, weapon in enumerate(player.weapon, 1):
+                print(f"({len(upgradeteble_items) + 1}) {player.weapon.name} - Уровень: {player.weapon.upgrade_lvl}")
+                upgradeteble_items.append(player.weapon)
+        choice = input("Что хотите улучшить? (0 для отмены): ")
+        if choice == "0":
+            break
+        if choice.isdigit() and 1 <= int(choice) <= len(upgradeteble_items):
+                item = upgradeteble_items[int(choice) - 1]
+                upgrade_cost = item.upgrade_lvl * 10
+                if player.gold >= upgrade_cost:
+                    player.gold -= upgrade_cost
+                    item.upgrade_lvl += 1
+                    print(f"Вы улучшили {item.name} за {upgrade_cost} монет.")
+                    self.upgrade(player)
+                else:
+                    print("У вас недостаточно монет.")
+        else:
+                print("Неверный выбор.")
+
     def sell(self, player):
         pass
 
@@ -220,7 +270,13 @@ class Quest:
             print(f"Вы получили {self.reward} монет в награду.")
 
 from Charecter import Player
+from armor import Helmet as Hel
+from weapon import Sword
 
 player = Player('Игрок', 100, 20, 50)
-citizen = Citizen('Прохожий', 'Обычный чел')
-citizen.interact(player)
+citizen = Blacksmith('Прохожий', 'Обычный чел')
+player.equip_armor(Hel('Шлем', 100, 0.1))
+player.equip_weapon(Sword(10,10))
+player.gold = 40
+print(player.armor_set, player.weapon)
+citizen.upgrade(player)
