@@ -1,10 +1,8 @@
 from Item import Item, Inventory
 import random as rn
 from event import Event
-from armor import Helmet as Hel
-from armor import Armor
-from weapon import Weapon
-from weapon import Sword
+from armor import Chestplate, Helmet, Leggings, Boots, ArmorFactory
+from weapon import Sword, Dagger, MagicalStuff, Projectile, WeaponFactory
 
 class NPC:
     def __init__(self, name, description, actions=None):
@@ -175,77 +173,143 @@ class Citizen(NPC):
 
 class Blacksmith(NPC):
     def __init__(self, name, description, actions=None):
-        super().__init__(name, description, actions)
+        """
+        :param name: Имя кузнеца.
+        :param description: Описание кузнеца.
+        :param actions: Список доступных действий для взаимодействия.
+        """
+        super().__init__(name, description, actions=[
+            {"name": "Купить предмет", "func": self.show_items_for_sale},
+            {"name": "Продать предмет", "func": self.buy_from_player},
+            {"name": "Взять квест", "func": self.give_quest},
+            {"name": "Починить предмет", "func": self.repair},
+            {"name": "Улучшить предмет", "func": self.upgrade},
+            {"name": "Создать предмет", "func": self.craft}
+        ])
+        self.inventory = Inventory()
+        self.populate_inventory()
+
+    def populate_inventory(self):
+        """Добавляет предметы в инвентарь кузнеца."""
+        items_for_sale = [
+            Helmet('Шлем', 100, 0.1),
+            Chestplate('Нагрудник', 150, 0.2),
+            Leggings('Поножи', 120, 1.5 ),
+            Boots('Сапоги', 80, 0.5),
+            Sword(200, 2.5),
+            Dagger(150, 20),
+        ]
+        for item in items_for_sale:
+            self.inventory.add_item(item)
+
+    def show_items_for_sale(self, player):
+        """Показывает товары, доступные для покупки."""
+        if not self.inventory.items:
+            print(f"{self.name}: У меня пока нет товаров на продажу.")
+            return
+
+        print(f"{self.name}: Вот, что у меня есть на продажу:")
+        for i, item in enumerate(self.inventory.items, 1):
+            print(f"({i}) {item.name} - {item.price} монет")
+
+        choice = input("Что хотите купить? (0 для отмены): ")
+        if choice == "0":
+            return
+
+        if choice.isdigit() and 1 <= int(choice) <= len(self.inventory.items):
+            item = self.inventory.items[int(choice) - 1]
+            if player.gold >= item.price:
+                player.gold -= item.price
+                player.inventory.add_item(item)
+                print(f"Вы купили {item.name} за {item.price} монет.")
+            else:
+                print("У вас недостаточно монет.")
+        else:
+            print("Неверный выбор.")
+
+    def buy_from_player(self, player):
+        """Позволяет игроку продать предметы."""
+        print("Ваш инвентарь:")
+        for i, item in enumerate(player.inventory.items, 1):
+            print(f"({i}) {item.name} - Цена: {item.get('sell_price', 10)} монет")
+        choice = input("Что хотите продать? (0 для отмены): ")
+        if choice == "0":
+            return
+        if choice.isdigit() and 1 <= int(choice) <= len(player.inventory.items):
+            item = player.inventory.items[int(choice) - 1]
+            sell_price = item.get("sell_price", 10)
+            player.gold += sell_price
+            player.inventory.remove_item(item.name)
+            print(f"Вы продали {item.name} за {sell_price} монет.")
+        else:
+            print("Неверный выбор.")
 
     def repair(self, player):
-            """Ремонтирует предметы игрока."""
-            repairable_items = []
-            print("Ваши предметы:")
-            for i, armor in enumerate(player.armor_set.values(), 1):
-                if armor:
-                    print(f"({i}) {armor.name} - Прочность: {armor.durability}/{armor.max_durability}")
-                    repairable_items.append(armor)
-            if player.weapon:
-                print(f"({len(repairable_items) + 1}) {player.weapon.name} - Прочность: {player.weapon.durability}/{player.weapon.max_durability}")
-                repairable_items.append(player.weapon)
-            choice = input("Что хотите починить? (0 для отмены): ")
-            if choice == "0":
-                return
-            if choice.isdigit() and 1 <= int(choice) <= len(repairable_items):
-                item = repairable_items[int(choice) - 1]
-                repair_cost = item.price // 2
-                if player.gold >= repair_cost:
-                    player.gold -= repair_cost
-                    item.durability = item.max_durability
-                    print(f"Вы починили {item.name} за {repair_cost} монет.")
-                else:
-                    print("У вас недостаточно монет.")
+        """Ремонтирует предметы игрока."""
+        repairable_items = []
+        print("Ваши предметы:")
+        for i, armor in enumerate(player.armor_set.values(), 1):
+            if armor:
+                print(f"({i}) {armor.name} - Прочность: {armor.durability}/{armor.max_durability}")
+                repairable_items.append(armor)
+        if player.weapon:
+            print(f"({len(repairable_items) + 1}) {player.weapon.name} - Прочность: {player.weapon.durability}/{player.weapon.max_durability}")
+            repairable_items.append(player.weapon)
+        choice = input("Что хотите починить? (0 для отмены): ")
+        if choice == "0":
+            return
+        if choice.isdigit() and 1 <= int(choice) <= len(repairable_items):
+            item = repairable_items[int(choice) - 1]
+            repair_cost = item.price // 2
+            if player.gold >= repair_cost:
+                player.gold -= repair_cost
+                item.durability = item.max_durability
+                print(f"Вы починили {item.name} за {repair_cost} монет.")
             else:
-                print("Неверный выбор.")
+                print("У вас недостаточно монет.")
+        else:
+            print("Неверный выбор.")
 
     def upgrade(self, player):
         """Улучшает предметы игрока."""
-        upgradeteble_items = []
-        print("Ваши предметы:")
-        for i, armor in enumerate(player.armor_set, 1):
-                print(f"({len(upgradeteble_items) + 1}) {player.armor.name} - Уровень: {player.armor.upgrade_lvl}")
-                upgradeteble_items.append(player.armor)
-        for i, weapon in enumerate(player.weapon, 1):
-                print(f"({len(upgradeteble_items) + 1}) {player.weapon.name} - Уровень: {player.weapon.upgrade_lvl}")
-                upgradeteble_items.append(player.weapon)
-        choice = input("Что хотите улучшить? (0 для отмены): ")
-        if choice == "0":
-            break
-        if choice.isdigit() and 1 <= int(choice) <= len(upgradeteble_items):
-                item = upgradeteble_items[int(choice) - 1]
+        while True:
+            upgradable_items = []
+            print("Ваши предметы:")
+            for armor in player.armor_set.values():
+                if armor:
+                    print(f"({len(upgradable_items) + 1}) {armor.name} - Уровень: {armor.upgrade_lvl}")
+                    upgradable_items.append(armor)
+            if player.weapon:
+                print(f"({len(upgradable_items) + 1}) {player.weapon.name} - Уровень: {player.weapon.upgrade_lvl}")
+                upgradable_items.append(player.weapon)
+
+            if not upgradable_items:
+                print("У вас нет предметов для улучшения.")
+                return
+
+            choice = input("Что хотите улучшить? (0 для отмены): ")
+            if choice == "0":
+                return
+
+            if choice.isdigit() and 1 <= int(choice) <= len(upgradable_items):
+                item = upgradable_items[int(choice) - 1]
                 upgrade_cost = item.upgrade_lvl * 10
                 if player.gold >= upgrade_cost:
                     player.gold -= upgrade_cost
                     item.upgrade_lvl += 1
                     print(f"Вы улучшили {item.name} за {upgrade_cost} монет.")
-                    self.upgrade(player)
                 else:
                     print("У вас недостаточно монет.")
-        else:
+            else:
                 print("Неверный выбор.")
 
-    def sell(self, player):
-        pass
-
-    def buy(self, player):
-        pass
-    
     def craft(self, player):
-        pass
+        """Создаёт предметы для игрока."""
+        print("Создание предметов пока не реализовано.")
 
     def give_quest(self, player):
-        pass
-
-    def show_items_for_sale(self, player):
-        pass
-
-    def buy_from_player(self, player):
-        pass
+        """Выдаёт квест игроку."""
+        print("Квесты пока не реализованы.")
 
 class Quest:
     def __init__(self, name, description, reward, condition):
@@ -270,13 +334,11 @@ class Quest:
             print(f"Вы получили {self.reward} монет в награду.")
 
 from Charecter import Player
-from armor import Helmet as Hel
-from weapon import Sword
 
 player = Player('Игрок', 100, 20, 50)
 citizen = Blacksmith('Прохожий', 'Обычный чел')
-player.equip_armor(Hel('Шлем', 100, 0.1))
+player.equip_armor(Helmet('Шлем', 100, 0.1))
 player.equip_weapon(Sword(10,10))
 player.gold = 40
 print(player.armor_set, player.weapon)
-citizen.upgrade(player)
+citizen.interact(player)

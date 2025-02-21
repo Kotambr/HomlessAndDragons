@@ -71,4 +71,4 @@ class ArmorFactory:
         name = rn.choice(names)  # Случайно выбираем тип брони
         armor_count = rn.randint(50, 150)    # Случайная прочность от 50 до 150
         absorption = round(rn.uniform(0.1, 0.4), 2)  # Случайное поглощение от 0.1 до 0.4
-        return name(armor_count, absorption)
+        return (name,armor_count, absorption)
