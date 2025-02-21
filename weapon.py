@@ -1,13 +1,16 @@
 import random as rn
 
 class Weapon:
-    def __init__(self, name, damage: int, durability: int):
+    def __init__(self, name, damage: int, durability: int, price: int):
         self.name = name
         self.damage = damage
         self.durability = durability
         self.max_durability = self.durability
-        self.price = damage * durability
+        self.price = price
         self.upgrade_lvl = 1
+
+    def __str__(self):
+        return f"{self.name} (Прочность: {self.durability}/{self.max_durability}, Урон: {self.damage})"
 
     def is_broken(self):
         return self.durability <= 0

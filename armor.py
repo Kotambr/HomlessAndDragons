@@ -1,8 +1,11 @@
 import random as rn
 
+
+
 class Armor:
     '''Первичный класс для брони'''
-    def __init__(self, name, durability, absorption):
+    def __init__(self, name, durability, absorption, price=0):
+        super().__init__(name, 'armor', None)
         """
         :param name: Тип брони (например, "Шлем", "Нагрудник").
         :param durability: Прочность брони.
@@ -12,8 +15,11 @@ class Armor:
         self.durability = durability
         self.max_durability = self.durability
         self.absorption = absorption
-        self.price = durability * absorption
+        self.price = price
         self.upgrade_lvl = 1
+
+    def __str__(self):
+        return f"{self.name} (Прочность: {self.durability}/{self.max_durability}, Поглощение: {self.absorption})"
 
     def absorb_damage(self, damage: int):
         absorbed = damage * self.absorption
