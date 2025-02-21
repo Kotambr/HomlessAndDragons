@@ -2,6 +2,13 @@ import random as rn
 
 class Weapon:
     def __init__(self, name, damage: int, durability: int, price: int):
+        """
+        :param name: Тип брони (например, "Шлем", "Нагрудник").
+        :param durability: Прочность брони.
+        :param absorption: Поглощение урона.
+        :param price: Цена оружия.
+        :param damage: Урон оружия.
+        """
         self.name = name
         self.damage = damage
         self.durability = durability
@@ -29,16 +36,16 @@ class Weapon:
         return f"Атака {self.name} по {target.name}, наносит {self.damage} урона."
 
 class Sword(Weapon):
-    def __init__(self, damage: int, durability: int):
-        super().__init__("Меч", damage, durability)
+    def __init__(self, name, damage, durability, price):
+        super().__init__('Меч', damage, durability, price)
 
 class Dagger(Weapon):
-    def __init__(self, damage: int, durability: int):
-        super().__init__("Кинжал", damage, durability)
+    def __init__(self, name, damage, durability, price):
+        super().__init__('Кинжал', damage, durability, price)
 
 class MagicalStuff(Weapon):
     def __init__(self, damage: int, durability: int, effect=None):
-        super().__init__("Магический предмет", damage, durability)
+        super().__init__("Магическое оружие", damage, durability)
         self.effect = effect or self.random_magic_effect()
 
     def random_magic_effect(self):

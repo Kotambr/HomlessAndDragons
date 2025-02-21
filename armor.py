@@ -3,13 +3,12 @@ import random as rn
 
 
 class Armor:
-    '''Первичный класс для брони'''
     def __init__(self, name, durability, absorption, price=0):
-        super().__init__(name, 'armor', None)
         """
         :param name: Тип брони (например, "Шлем", "Нагрудник").
         :param durability: Прочность брони.
         :param absorption: Поглощение урона.
+        :param price: Цена брони.
         """
         self.name = name
         self.durability = durability
