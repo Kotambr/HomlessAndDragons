@@ -1,7 +1,5 @@
 import random as rn
 
-
-
 class Armor:
     def __init__(self, name, durability, absorption, price=0):
         """

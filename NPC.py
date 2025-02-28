@@ -1,8 +1,9 @@
-from Item import Item, Inventory
+from Item import Item, Inventory, ItemFactory
 import random as rn
 from event import Event
 from armor import Chestplate, Helmet, Leggings, Boots, ArmorFactory
 from weapon import Sword, Dagger, MagicalStuff, Projectile, WeaponFactory
+import Quest
 
 class NPC:
     def __init__(self, name, description, actions=None):
@@ -36,7 +37,7 @@ class NPC:
                 action["func"](player)
             else:
                 print("Неверный выбор. Попробуйте снова.")
-        
+
 class Merchant(NPC):
     def __init__(self, name, inventory, quests=None):
         """
@@ -52,17 +53,18 @@ class Merchant(NPC):
         self.inventory = Inventory()
         self.quests = quests if quests else []
         self.populate_inventory()
+        self.event = Event(player)
 
     def populate_inventory(self):
         """Добавляет предметы в инвентарь торговца."""
         items_for_sale = [
-            {'type': 'Восполняющее здоровье', 'name': 'Зелье здоровья', 'effect': lambda: self.increase_hp(20), 'count': 1, 'price': 100},
-            {'type': 'Увеличение параметров', 'name': 'Зелье силы', 'effect': Item.increase_damage, 'count': 1, 'price': 100},
-            {'type': 'Рандомизатор', 'name': 'Карта-обманка', 'effect': lambda: Item.increase_hp(rn.randint(-50, 20)), 'count': 1, 'price': 100},
-            {'type': 'Вероятность', 'name': 'Карта подземки', 'effect': lambda: Event.incrimer_event('chest'), 'count': 1, 'price': 100},
-            {'type': 'Вероятность', 'name': 'Странный мешок', 'effect': lambda: Event.incrimer_event('enemy'), 'count': 1, 'price': 100},
-            {'type': 'Вероятность', 'name': 'Походная книга', 'effect': lambda: Event.incrimer_event('item'), 'count': 1, 'price': 100},
-            {'type': 'Вероятность', 'name': 'Тухлое яйцо', 'effect': lambda: Event.incrimer_event('nothing'), 'count': 1, 'price': 100},
+            ItemFactory.create_item('potion', name='Зелье здоровья', effect=lambda target: target.increase_hp(20), count=1, price=100),
+            ItemFactory.create_item('potion', name='Зелье силы', effect=lambda target: target.increase_damage(10), count=1, price=100),
+            ItemFactory.create_item('misc', name='Карта-обманка', effect=lambda target: target.increase_hp(rn.randint(-50, 20)), count=1, price=100),
+            ItemFactory.create_item('misc', name='Карта подземки', effect=lambda target: self.event.incrimer_event('chest'), count=1, price=100),
+            ItemFactory.create_item('misc', name='Странный мешок', effect=lambda target: self.event.incrimer_event('enemy'), count=1, price=100),
+            ItemFactory.create_item('misc', name='Походная книга', effect=lambda target: self.event.incrimer_event('item'), count=1, price=100),
+            ItemFactory.create_item('misc', name='Тухлое яйцо', effect=lambda target: self.event.incrimer_event('nothing'), count=1, price=100),
         ]
         for item in items_for_sale:
             self.inventory.add_item(item)
@@ -75,7 +77,7 @@ class Merchant(NPC):
 
         print(f"{self.name}: Вот, что у меня есть на продажу:")
         for i, item in enumerate(self.inventory.items, 1):
-            print(f"({i}) {item[('name')]} - {item[('price')]} монет")
+            print(f"({i}) {item.name} - {item.price} монет")
 
         choice = input("Что хотите купить? (0 для отмены): ")
         if choice == "0":
@@ -85,7 +87,7 @@ class Merchant(NPC):
             item = self.inventory.items[int(choice) - 1]
             if player.gold >= item.price:
                 player.gold -= item.price
-                player.inventory.add_item({"name": item.name, "price": item.price, "count": 1})
+                player.inventory.add_item(item)
                 print(f"Вы купили {item.name} за {item.price} монет.")
             else:
                 print("У вас недостаточно монет.")
@@ -96,16 +98,16 @@ class Merchant(NPC):
         """Позволяет игроку продать предметы."""
         print("Ваш инвентарь:")
         for i, item in enumerate(player.inventory.items, 1):
-            print(f"({i}) {item.item['name']} - Цена: {item.item.get('sell_price', 10)} монет")
+            print(f"({i}) {item.name} - Цена: {item.name} {item.price} монет")
         choice = input("Что хотите продать? (0 для отмены): ")
         if choice == "0":
             return
         if choice.isdigit() and 1 <= int(choice) <= len(player.inventory.items):
             item = player.inventory.items[int(choice) - 1]
-            sell_price = item.item.get("sell_price", 10)
+            sell_price = item.price
             player.gold += sell_price
-            player.inventory.remove_item(item.item["name"])
-            print(f"Вы продали {item.item['name']} за {sell_price} монет.")
+            player.inventory.remove_equipment(item.name)
+            print(f"Вы продали {item.name} за {sell_price} монет.")
         else:
             print("Неверный выбор.")
 
@@ -186,22 +188,23 @@ class Blacksmith(NPC):
             {"name": "Улучшить предмет", "func": self.upgrade},
             {"name": "Создать предмет", "func": self.craft}
         ])
+        self.item_factory = ItemFactory()
         self.inventory = Inventory()
         self.populate_inventory()
 
     def populate_inventory(self):
         """Добавляет предметы в инвентарь кузнеца."""
         items_for_sale = [
-            Helmet('Шлем', 100, 0.1),
-            Chestplate('Нагрудник', 150, 0.2),
-            Leggings('Поножи', 120, 1.5 ),
-            Boots('Сапоги', 80, 0.5),
-            Sword(200, 2.5),
-            Dagger(150, 20),
+            self.item_factory.create_item('weapon', name='Меч', damage=10, durability=10, price=20),
+            self.item_factory.create_item('weapon', name='Кинжал', damage=5, durability=5, price=10),
+            self.item_factory.create_item('armor', name='Шлем', durability=20, absorption=0.1, price=20),
+            self.item_factory.create_item('armor', name='Нагрудник', durability=30, absorption=0.2, price=30),
+            self.item_factory.create_item('armor', name='Поножи', durability=25, absorption=0.15, price=25),
+            self.item_factory.create_item('armor', name='Ботинки', durability=15, absorption=0.05, price=15), 
         ]
         for item in items_for_sale:
             self.inventory.add_item(item)
-
+# Добавь предметы восстановления прочности у оружия и брони
     def show_items_for_sale(self, player):
         """Показывает товары, доступные для покупки."""
         if not self.inventory.items:
@@ -231,15 +234,15 @@ class Blacksmith(NPC):
         """Позволяет игроку продать предметы."""
         print("Ваш инвентарь:")
         for i, item in enumerate(player.inventory.items, 1):
-            print(f"({i}) {item.name} - Цена: {item.get('sell_price', 10)} монет")
+            print(f"({i}) {item.name} - Цена: {item.name} {item.price} монет")
         choice = input("Что хотите продать? (0 для отмены): ")
         if choice == "0":
             return
         if choice.isdigit() and 1 <= int(choice) <= len(player.inventory.items):
             item = player.inventory.items[int(choice) - 1]
-            sell_price = item.get("sell_price", 10)
+            sell_price = item.price
             player.gold += sell_price
-            player.inventory.remove_item(item.name)
+            player.inventory.remove_equipment(item.name)
             print(f"Вы продали {item.name} за {sell_price} монет.")
         else:
             print("Неверный выбор.")
@@ -311,34 +314,16 @@ class Blacksmith(NPC):
         """Выдаёт квест игроку."""
         print("Квесты пока не реализованы.")
 
-class Quest:
-    def __init__(self, name, description, reward, condition):
-        """
-        :param name: Название квеста.
-        :param description: Описание квеста.
-        :param reward: Награда за выполнение.
-        :param condition: Условие выполнения (функция).
-        """
-        self.name = name
-        self.description = description
-        self.reward = reward
-        self.condition = condition
-        self.completed = False
-
-    def check_completion(self, player):
-        """Проверяет выполнение квеста."""
-        if self.condition(player):
-            self.completed = True
-            print(f"Квест '{self.name}' выполнен!")
-            player.gold += self.reward
-            print(f"Вы получили {self.reward} монет в награду.")
-
 from Charecter import Player
 
 player = Player('Игрок', 100, 20, 50)
-citizen = Blacksmith('Прохожий', 'Обычный чел')
+ecet = Event(player)
+# citizen = Merchant('Прохожий', 'Обычный чел', None)
 player.equip_armor(Helmet('Шлем', 100, 0.1))
-player.equip_weapon(Sword(10,10))
-player.gold = 40
-print(player.armor_set, player.weapon)
-citizen.interact(player)
+player.equip_weapon(Sword('Sword', 10,10, 20))
+player.gold = 400
+ss = ItemFactory.create_item('misc', name='Карта подземки', effect=lambda target: ecet.incrimer_event('chest'), count=1, price=100)
+# citizen.interact(player)
+player.inventory.add_item(ss)
+player.inventory.show_inventory(player)
+# player.inventory.use_item('Карта-обманка')

@@ -90,7 +90,7 @@ class ItemFactory:
         'potion': lambda **kwargs: PotionFactory.create_potion(**kwargs),
         'weapon': lambda **kwargs: Weapon(**kwargs),
         'armor': lambda **kwargs: Armor(**kwargs),
-        'misc': lambda **kwargs: Item(**kwargs)
+        'misc': lambda **kwargs: MiscItem(**kwargs)
     }
 
     @staticmethod
@@ -177,17 +177,18 @@ class MiscItem(Item):
         }
     
     def use(self, target):
-        """Применяет эффект к указанной цели."""
-        if self.count <= 0:
-            print(f"{self.name} больше нет в наличии.")
-            return
-        
-        if callable(self.effect):
-            self.effect(target)
+            """Применяет эффект к указанной цели."""
+            if self.count <= 0:
+                print(f"{self.name} больше нет в наличии.")
+                return
+            
+            if callable(self.effect):
+                print(f"Применение эффекта {self.name} на {target.name}.")  # Отладочный вывод
+                self.effect(target)
 
-        self.count -= 1
-        if self.count == 0:
-            print(f"{self.name} закончилось.")
+            self.count -= 1
+            if self.count == 0:
+                print(f"{self.name} закончилось.")
 
     def repair_effect(self, item, durability):
         item.durability += durability

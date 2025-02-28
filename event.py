@@ -37,7 +37,6 @@ class Event:
                 return event["name"]
         return "Ничего не произошло."  
     
-    @staticmethod
     def incrimer_event(self, event_name):
         for event in self.events_list:
             if event['name'] == event_name:

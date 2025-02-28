@@ -22,7 +22,7 @@ class Game:
             'chest': self.chest_event.choise,
             'travel': lambda: self.travel.travel()
         }
-
+    
     def clear_console(self):
         """Очистка консоли после 20 строк сообщений."""
         self.message_count += 1
