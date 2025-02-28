@@ -1,38 +1,51 @@
 import random as rn
 
 class Weapon:
-    def __init__(self, type_weapon, damage: int, weapon_count: int):
-        self.type_weapon = type_weapon
+    def __init__(self, name, damage: int, durability: int, price: int):
+        """
+        :param name: Тип брони (например, "Шлем", "Нагрудник").
+        :param durability: Прочность брони.
+        :param absorption: Поглощение урона.
+        :param price: Цена оружия.
+        :param damage: Урон оружия.
+        """
+        self.name = name
         self.damage = damage
-        self.weapon_count = weapon_count
+        self.durability = durability
+        self.max_durability = self.durability
+        self.price = price
+        self.upgrade_lvl = 1
+
+    def __str__(self):
+        return f"{self.name} (Прочность: {self.durability}/{self.max_durability}, Урон: {self.damage})"
 
     def is_broken(self):
-        return self.weapon_count <= 0
+        return self.durability <= 0
 
     def reduce_durability(self):
         """Снижает прочность оружия на 1 при использовании."""
-        if self.weapon_count > 0:
-            self.weapon_count -= 1
-            print(f"{self.type_weapon} теряет прочность, осталось {self.weapon_count}.")
+        if self.durability > 0:
+            self.durability -= 1
+            print(f"{self.name} теряет прочность, осталось {self.durability}.")
         if self.is_broken():
-            print(f"{self.type_weapon} сломалось!")
+            print(f"{self.name} сломалось!")
 
     def use(self, target):
         """Использование оружия против цели."""
         self.reduce_durability()
-        return f"Атака {self.type_weapon} по {target.name}, наносит {self.damage} урона."
+        return f"Атака {self.name} по {target.name}, наносит {self.damage} урона."
 
 class Sword(Weapon):
-    def __init__(self, damage: int, weapon_count: int):
-        super().__init__("Меч", damage, weapon_count)
+    def __init__(self, name, damage, durability, price):
+        super().__init__('Меч', damage, durability, price)
 
 class Dagger(Weapon):
-    def __init__(self, damage: int, weapon_count: int):
-        super().__init__("Кинжал", damage, weapon_count)
+    def __init__(self, name, damage, durability, price):
+        super().__init__('Кинжал', damage, durability, price)
 
 class MagicalStuff(Weapon):
-    def __init__(self, damage: int, weapon_count: int, effect=None):
-        super().__init__("Магический предмет", damage, weapon_count)
+    def __init__(self, damage: int, durability: int, effect=None):
+        super().__init__("Магическое оружие", damage, durability)
         self.effect = effect or self.random_magic_effect()
 
     def random_magic_effect(self):
@@ -50,14 +63,14 @@ class MagicalStuff(Weapon):
         self.reduce_durability()
         effect_name, effect_function = self.effect
         if self.is_broken():
-            return f"{self.type_weapon} не может быть использован, так как сломан."
-        result = f"Атака {self.type_weapon} по {target.name}, наносит {self.damage} урона."
+            return f"{self.name} не может быть использован, так как сломан."
+        result = f"Атака {self.name} по {target.name}, наносит {self.damage} урона."
         result += f" Эффект: {effect_function(target if target else caster)}."
         return result
 
 class Projectile(Weapon):
-    def __init__(self, damage: int, weapon_count: int):
-        super().__init__("Метательное оружие", damage, weapon_count)
+    def __init__(self, damage: int, durability: int):
+        super().__init__("Метательное оружие", damage, durability)
 
 class WeaponFactory:
     @staticmethod
@@ -66,9 +79,9 @@ class WeaponFactory:
         weapon_class = rn.choice(weapon_types)
         
         damage = rn.randint(5, 30)
-        weapon_count = rn.randint(5, 15)
+        durability = rn.randint(5, 15)
         
         if weapon_class == MagicalStuff:
-            return weapon_class(damage, weapon_count) 
+            return weapon_class(damage, durability) 
         else:
-            return weapon_class(damage, weapon_count)
+            return weapon_class(damage, durability)
