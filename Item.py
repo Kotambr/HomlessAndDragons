@@ -94,7 +94,41 @@ class ItemFactory:
     }
 
     @staticmethod
-    def create_item(item_type, **kwargs):
+    def create_item(item_type: str, **kwargs) -> Item:
+        """
+        Создает предмет указанного типа.
+
+        Параметры:
+        item_type (str): Тип предмета ('potion', 'weapon', 'armor', 'misc').
+        **kwargs: Дополнительные параметры, зависящие от типа предмета.
+
+        Для 'potion':
+            name (str): Название зелья.
+            effect (tuple): Кортеж, содержащий тип эффекта и значение эффекта.
+            price (int): Цена зелья.
+            count (int): Количество зелья.
+
+        Для 'weapon':
+            name (str): Название оружия.
+            damage (int): Урон оружия.
+            price (int): Цена оружия.
+            durability (int): Прочность оружия.
+
+        Для 'armor':
+            name (str): Название брони.
+            defense (int): Защита брони.
+            price (int): Цена брони.
+            durability (int): Прочность брони.
+
+        Для 'misc':
+            name (str): Название предмета.
+            effect (callable): Функция эффекта предмета.
+            price (int): Цена предмета.
+            count (int): Количество предмета.
+
+        Возвращает:
+        Item: Созданный предмет.
+        """
         item_class = ItemFactory.item_classes.get(item_type)
         if not item_class:
             raise ValueError(f"Unknown item type: {item_type}")
