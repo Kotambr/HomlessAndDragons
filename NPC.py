@@ -1,9 +1,19 @@
-from Item import Item, Inventory, ItemFactory
+from Item import Inventory, ItemFactory
 import random as rn
 from event import Event
 from armor import Chestplate, Helmet, Leggings, Boots, ArmorFactory
 from weapon import Sword, Dagger, MagicalStuff, Projectile, WeaponFactory
-import Quest
+from Craft import Craft
+from Quest import Quest, QuestLog
+
+side_quest = Quest(
+    quest_id=1,
+    name="Крафт поршня Лады Веста с правильной геометрией",
+    description="Соберите поршень Лады Веста с правильной геометрией.",
+    objectives={"Доставть чёрт знает где поршень от Лады Веста": False},
+    rewards=None,
+    is_main=False
+)
 
 class NPC:
     def __init__(self, name, description, actions=None):
@@ -191,6 +201,8 @@ class Blacksmith(NPC):
         self.item_factory = ItemFactory()
         self.inventory = Inventory()
         self.populate_inventory()
+        self.craft_system = Craft()
+        self.craft_inventory()
 
     def populate_inventory(self):
         """Добавляет предметы в инвентарь кузнеца."""
@@ -204,7 +216,13 @@ class Blacksmith(NPC):
         ]
         for item in items_for_sale:
             self.inventory.add_item(item)
-# Добавь предметы восстановления прочности у оружия и брони
+
+    def craft_inventory(self):
+            self.craft_system.add_recipe('Лук', [{'name': 'Дерево', 'count': 2}, {'name': 'Стрела', 'count': 2}], 'weapon', damage=10, durability=100, price=50),
+            self.craft_system.add_recipe('Зелье лечения', [{'name': 'Травы', 'count': 3}, {'name': 'Вода', 'count': 1}], 'potion', effect=('heal', 50), price=100),
+            self.craft_system.add_recipe('Кольчуга', [{'name': 'Металл', 'count': 5}], 'armor', durability=50, absorption=0.3, price=100),
+            self.craft_system.add_recipe('Кольцо', [{'name': 'Металл', 'count': 1}], 'misc', effect=('increase_hp', 50), price=100),
+
     def show_items_for_sale(self, player):
         """Показывает товары, доступные для покупки."""
         if not self.inventory.items:
@@ -308,22 +326,23 @@ class Blacksmith(NPC):
 
     def craft(self, player):
         """Создаёт предметы для игрока."""
-        print("Создание предметов пока не реализовано.")
+        self.craft_system.move_in_craft(player)
 
     def give_quest(self, player):
         """Выдаёт квест игроку."""
-        print("Квесты пока не реализованы.")
+        quest_log.add_quest(side_quest)
+
+        
 
 from Charecter import Player
+quest_log = QuestLog()
 
 player = Player('Игрок', 100, 20, 50)
 ecet = Event(player)
-# citizen = Merchant('Прохожий', 'Обычный чел', None)
-player.equip_armor(Helmet('Шлем', 100, 0.1))
-player.equip_weapon(Sword('Sword', 10,10, 20))
-player.gold = 400
-ss = ItemFactory.create_item('misc', name='Карта подземки', effect=lambda target: ecet.incrimer_event('chest'), count=1, price=100)
-# citizen.interact(player)
-player.inventory.add_item(ss)
-player.inventory.show_inventory(player)
-# player.inventory.use_item('Карта-обманка')
+cytyzen = Blacksmith('Кузнец', 'Мастер по ковке оружия и брони.')
+cytyzen.interact(player)
+quest_log.show_log()
+quest_log.active_quests[1].update_objective('Доставть чёрт знает где поршень от Лады Веста')
+cytyzen.interact(player) 
+
+
