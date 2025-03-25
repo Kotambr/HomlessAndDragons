@@ -1,16 +1,22 @@
 import random as rn
 
 class Armor:
-    '''Первичный класс для брони'''
-    def __init__(self, armor_type, durability, absorption):
+    def __init__(self, name, durability, absorption, price=0):
         """
-        :param armor_type: Тип брони (например, "Шлем", "Нагрудник").
+        :param name: Тип брони (например, "Шлем", "Нагрудник").
         :param durability: Прочность брони.
         :param absorption: Поглощение урона.
+        :param price: Цена брони.
         """
-        self.armor_type = armor_type
+        self.name = name
         self.durability = durability
+        self.max_durability = self.durability
         self.absorption = absorption
+        self.price = price
+        self.upgrade_lvl = 1
+
+    def __str__(self):
+        return f"{self.name} (Прочность: {self.durability}/{self.max_durability}, Поглощение: {self.absorption})"
 
     def absorb_damage(self, damage: int):
         absorbed = damage * self.absorption
@@ -21,24 +27,24 @@ class Armor:
         return self.durability <= 0
 
     def __str__(self):
-        return f"{self.armor_type} (Прочность: {self.durability}, Поглощение: {self.absorption})"
+        return f"{self.name} (Прочность: {self.durability}, Поглощение: {self.absorption})"
 
 
 class Helmet(Armor):
-    def __init__(self, armor_type, durability, absorption):
-        super().__init__(armor_type, durability, absorption)
+    def __init__(self, name, durability, absorption):
+        super().__init__(name, durability, absorption)
 
 class Chestplate(Armor):
-    def __init__(self, armor_type, durability, absorption):
-        super().__init__(armor_type, durability, absorption)
+    def __init__(self, name, durability, absorption):
+        super().__init__(name, durability, absorption)
         
 class Leggings(Armor):
-    def __init__(self, armor_type, durability, absorption):
-        super().__init__(armor_type, durability, absorption)
+    def __init__(self, name, durability, absorption):
+        super().__init__(name, durability, absorption)
 
 class Boots(Armor):
-    def __init__(self, armor_type, durability, absorption):
-        super().__init__(armor_type, durability, absorption)
+    def __init__(self, name, durability, absorption):
+        super().__init__(name, durability, absorption)
 
 class ArmorSet:
     '''Класс для управления комплектом брони'''
@@ -48,9 +54,9 @@ class ArmorSet:
     def check_armor(self):
         for armor in self.armor_pieces:
             if armor.is_broken():
-                print(f"{armor.armor_type} сломался!")
+                print(f"{armor.name} сломался!")
             else:
-                print(f"{armor.armor_type} в порядке, прочность: {armor.durability}")
+                print(f"{armor.name} в порядке, прочность: {armor.durability}")
 
     def absorb_damage(self, damage):
         for armor in self.armor_pieces:
@@ -64,8 +70,8 @@ class ArmorFactory:
     '''Класс для генерации случайной брони'''
     @staticmethod
     def create_random_armor():
-        armor_types = [Helmet, Chestplate, Leggings, Boots]
-        armor_type = rn.choice(armor_types)  # Случайно выбираем тип брони
+        names = [Helmet, Chestplate, Leggings, Boots]
+        name = rn.choice(names)  # Случайно выбираем тип брони
         armor_count = rn.randint(50, 150)    # Случайная прочность от 50 до 150
         absorption = round(rn.uniform(0.1, 0.4), 2)  # Случайное поглощение от 0.1 до 0.4
-        return armor_type(armor_count, absorption)
+        return (name,armor_count, absorption)

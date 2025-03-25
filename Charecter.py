@@ -1,5 +1,6 @@
 from Item import Inventory, Potion, PotionFactory
 import random as rn
+from armor import Helmet, Chestplate, Leggings, Boots
 
 class Character():
     '''Основной класс для работы с персонажами'''
@@ -14,10 +15,10 @@ class Character():
         self.spells = spells if spells is not None else []
         self.weapon = None
         self.armor_set = {
-            'helmet': None,
-            'chestplate': None,
-            'leggings': None,
-            'boots': None
+            Helmet: None,
+            Chestplate: None,
+            Leggings : None,
+            Boots : None
         }
 
     def is_alive(self):
@@ -94,18 +95,22 @@ class Player(Character):
         """Экипирует оружие."""
         self.weapon = weapon
         self.damage += weapon.damage
-        print(f"{weapon.type_weapon} экипировано. Урон увеличен на {weapon.damage}.")
+        print(f"{weapon.__class__.__name__} экипировано. Урон увеличен на {weapon.damage}.")
 
     def equip_armor(self, armor):
         """Экипирует броню."""
-        self.armor_set[armor.type] = armor
-        print(f"Экипирована броня: {armor.name} с поглощением урона: {armor.absorption}.")
+        name = type(armor)
+        if name in self.armor_set:
+            self.armor_set[name] = armor
+            print(f"Экипирована броня: {armor.name} с поглощением урона: {armor.absorption}.")
+        else:
+            print("Неверный тип брони.")
 
 class Enemy(Character):
     def __init__(self, name, hp, damage, manabank, spells = []):
         super().__init__(name, hp, damage, manabank, spells)
         self.alive = True
-        self.inventory.add_poition_enemy(PotionFactory.give_random_potion().to_dict())
+        self.inventory.items = PotionFactory.create_potion(name='Heal', effect=('heal', 20),price=1, count=3)
 
     def take_damage(self, amount):
         total_damage = amount

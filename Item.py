@@ -1,167 +1,42 @@
 import random as rn
+from armor import Armor
+from weapon import Weapon
 
 class Item:
-    def __init__(self):
-        self.items = [
-            {'type': 'Восполняющее здоровье', 'name': 'Зелье здоровья', 'effect': lambda: self.increase_hp(20), 'count': 1},
-            {'type': 'Увеличение параметров', 'name': 'Зелье силы', 'effect': self.increase_damage, 'count': 1},
-            {'type': 'Рандомизатор', 'name': 'Карта-обманка', 'effect': lambda: self.increase_hp(rn.randint(-50, 20)), 'count': 1},
-            {'type': 'Вероятность', 'name': 'Карта подземки', 'effect': lambda: self.event.incrimer_event('chest'), 'count': 1},
-            {'type': 'Вероятность', 'name': 'Странный мешок', 'effect': lambda: self.event.incrimer_event('enemy'), 'count': 1},
-            {'type': 'Вероятность', 'name': 'Походная книга', 'effect': lambda: self.event.incrimer_event('item'), 'count': 1},
-            {'type': 'Вероятность', 'name': 'Тухлое яйцо', 'effect': lambda: self.event.incrimer_event('nothing'), 'count': 1}
-        ]
-    
-    @staticmethod
-    def increase_hp(self, amount):
-        self.hp += amount
-        print(f"{self.name} восстановил {amount} здоровья. Текущее здоровье: {self.hp}")
+    def __init__(self, name, item_type, effect, price, count=1):
+        self.name = name
+        self.item_type = item_type
+        self.effect = effect
+        self.price = price
+        self.count = count
 
-    @staticmethod
-    def increase_damage(self):
-        self.player.damage += 20
-        print(f"{self.name} увеличил силу атаки на 20. Текущая сила атаки: {self.damage}")
-
-    def find_item(self, player):
-        item = rn.choice(self.items)
-        choice = input(f'Вы нашли {item["name"]}! Взять? (1)Да (2)Нет :')
-        if choice == '1':
-            player.inventory.add_item(item)
+    def use(self, target):
+        if callable(self.effect):
+            self.effect(target)
         else:
-            print('Вы продолжили путь')
-            return None
-        
-
-class InventoryItem:
-    def __init__(self, item_dict):
-        """
-        Инициализация объекта InventoryItem.
-        :param item_dict: Словарь с описанием предмета.
-        """
-        self.item = item_dict  # Словарь с информацией о предмете
-        self.quantity = item_dict.get("count", 1)  # Количество предметов
-        self.name = item_dict.get("name")  # Название предмета
-        self.price = item_dict.get("price")  # Цена предмета
-
-    def use(self):
-        """
-        Применяет эффект предмета.
-        """
-        print(f"Используется предмет: {self.item['name']}")
-        if callable(self.item["effect"]):
-            self.item["effect"]()  # Применяем эффект, если он задан
+            print(f"Эффект {self.name} не может быть применен.")
 
     def __str__(self):
-        """
-        Строковое представление предмета для отображения в инвентаре.
-        """
-        return f"{self.item['name']} (x{self.quantity})"
-    
+        return f"{self.name} (x{self.count})"
+
     def __repr__(self):
-        return f"InventoryItem(name={self.item['name']}, quantity={self.quantity})"
+        return f"Item(name={self.name}, item_type={self.item_type}, count={self.count})"
 
-class Inventory:
-    def __init__(self):
-        self.items = []  # Список предметов, каждый элемент — это InventoryItem
-
-    def add_item(self, item_dict):
-        """
-        Добавляет предмет в инвентарь.
-        :param item_dict: Словарь с описанием предмета.
-        """
-
-        # Проверяем, есть ли уже предмет с таким именем в инвентаре
-        for inventory_item in self.items:
-            if inventory_item.item["name"] == item_dict["name"]:
-                inventory_item.quantity += item_dict.get("count", 1)
-                print(f"Обновлено количество {inventory_item.item['name']} до {inventory_item.quantity}")
-                return
-        # Если предмет не найден, добавляем его как новый
-        self.items.append(InventoryItem(item_dict))
-        print(f"Добавлен новый предмет: {item_dict['name']}")
-
-    def add_poition_enemy(self, item):
-        """
-        Добавляет предмет в инвентарь врага.
-        :param item: Объект предмета (например, экземпляр Potion).
-        """
-        item_dict = item.to_dict() if hasattr(item, "to_dict") else item
-        for inventory_item in self.items:
-            if inventory_item.item["name"] == item_dict["name"]:
-                inventory_item.quantity += item_dict.get("count", 1)
-                print(f"Обновлено количество {inventory_item.item['name']} до {inventory_item.quantity}")
-                return
-
-        self.items.append(Potion(**item_dict))
-
-
-    def remove_item(self, item_name, quantity=1):
-        """Удаляет предмет из инвентаря или уменьшает его количество."""
-        for inventory_item in self.items:
-            if inventory_item.item["name"] == item_name:
-                if inventory_item.quantity > quantity:
-                    inventory_item.quantity -= quantity
-                else:
-                    self.items.remove(inventory_item) 
-                return
-        print("Такого предмета нет в инвентаре.")
-
-    def use_item(self, item_name):
-        """Использует предмет из инвентаря."""
-        for inventory_item in self.items:
-            if inventory_item.item["name"] == item_name:
-                inventory_item.use()  # Применяем эффект предмета
-                if inventory_item.quantity > 1:
-                    inventory_item.quantity -= 1
-                else:
-                    self.items.remove(inventory_item)  # Удаляем предмет, если его количество равно нулю
-                return
-        print("Такого предмета нет в инвентаре.")
-
-    def show_inventory(self):
-        """Выводит содержимое инвентаря."""
-        print("Инвентарь:")
-        if not self.items:
-            print("Инвентарь пуст.")
-        else:
-            for inventory_item in self.items:
-                print(inventory_item)
-            action = input('ВЫберите предмет: ')
-            self.use_item(action)
-
-
-class Potion:
-    def __init__(self, name, effect, effect_type, count=1):
-        """
-        :param name: Название зелья.
-        :param effect: Сила эффекта.
-        :param effect_type: Тип эффекта (heal, buff, random).
-        :param count: Количество использований.
-        """
-        self.name = name
-        self.effect = effect
+class Potion(Item):
+    def __init__(self, name, effect, effect_type, price, count=1):
+        super().__init__(name, 'potion', effect, price, count)
         self.effect_type = effect_type
-        self.count = count
 
         # Карта действий для эффектов
         self.effect_actions = {
             "heal": self.apply_heal,
-            "buff": self.apply_buff,
+            "buff":  self.apply_buff,
             "random": self.apply_random
-        }
-
-    def to_dict(self):
-        """Преобразует объект в словарь для добавления в инвентарь."""
-        return {
-            "name": self.name,
-            "effect": self.effect,
-            "effect_type": self.effect_type,
-            "count": self.count
         }
 
     def apply_heal(self, target):
         """Лечение цели."""
-        target.hp = min(target.max_hp, target.hp + self.effect)
+        target.hp += self.effect
         print(f"{target.name} восстановил {self.effect} HP. Текущее здоровье: {target.hp}.")
 
     def apply_buff(self, target):
@@ -172,7 +47,7 @@ class Potion:
     def apply_random(self, target):
         """Применение случайного эффекта."""
         action = rn.choice(["heal", "buff"])
-        self.effect_actions[action](target)  
+        self.effect_actions[action](target)
 
     def use(self, target):
         """Применяет эффект зелья к указанной цели."""
@@ -183,29 +58,193 @@ class Potion:
         action = self.effect_actions.get(self.effect_type)
         if action:
             action(target)
-
+            
         self.count -= 1
         if self.count == 0:
             print(f"{self.name} закончилось.")
 
 class HealPotion(Potion):
-    def __init__(self, name, effect, count=1):
-        super().__init__(name, effect, "heal", count)
+    def __init__(self, name, effect, count=1, price=None):
+        super().__init__(name, effect, "heal", price, count)
 
 class BuffPotion(Potion):
-    def __init__(self, name, effect, count=1):
-        super().__init__(name, effect, "buff", count)
+    def __init__(self, name, effect, count=1, price=None):
+        super().__init__(name, effect, "buff", price, count)
 
 class RandomPotion(Potion):
-    def __init__(self, name, effect, count=1):
-        super().__init__(name, effect, "random", count)
+    def __init__(self, name, effect, count=1, price=None):
+        super().__init__(name, effect, "random", price, count)
 
 class PotionFactory:
+    potion_classes = {'heal': HealPotion, 'buff': BuffPotion, 'random': RandomPotion}
+
     @staticmethod
-    def give_random_potion():
-        potion_class = rn.choice([HealPotion, BuffPotion, RandomPotion]) 
-        effect = rn.randint(10, 50) 
-        name = f"Экспериментальное зелье #{rn.randint(1, 9999)}"
-        return potion_class(name=name, effect=effect, count=1)
+    def create_potion(name, effect, price, count=1):
+        potion_class = PotionFactory.potion_classes[effect[0]]
+        if not name:
+            name = f"Экспериментальное зелье #{rn.randint(1, 9999)}"
+        return potion_class(name=name, effect=effect[1], count=count, price=price)
+
+class ItemFactory:
+    item_classes = {
+        'potion': lambda **kwargs: PotionFactory.create_potion(**kwargs),
+        'weapon': lambda **kwargs: Weapon(**kwargs),
+        'armor': lambda **kwargs: Armor(**kwargs),
+        'misc': lambda **kwargs: MiscItem(**kwargs)
+    }
+
+    @staticmethod
+    def create_item(item_type: str, **kwargs) -> Item:
+        """
+        Создает предмет указанного типа.
+
+        Параметры:
+        item_type (str): Тип предмета ('potion', 'weapon', 'armor', 'misc').
+        **kwargs: Дополнительные параметры, зависящие от типа предмета.
+
+        Для 'potion':
+            name (str): Название зелья.
+            effect (tuple): Кортеж, содержащий тип эффекта и значение эффекта.
+            price (int): Цена зелья.
+            count (int): Количество зелья.
+
+        Для 'weapon':
+            name (str): Название оружия.
+            damage (int): Урон оружия.
+            price (int): Цена оружия.
+            durability (int): Прочность оружия.
+
+        Для 'armor':
+            name (str): Название брони.
+            defense (int): Защита брони.
+            price (int): Цена брони.
+            durability (int): Прочность брони.
+
+        Для 'misc':
+            name (str): Название предмета.
+            effect (callable): Функция эффекта предмета.
+            price (int): Цена предмета.
+            count (int): Количество предмета.
+
+        Возвращает:
+        Item: Созданный предмет.
+        """
+        item_class = ItemFactory.item_classes.get(item_type)
+        if not item_class:
+            raise ValueError(f"Unknown item type: {item_type}")
+        return item_class(**kwargs)
+
+    @staticmethod
+    def create_random_item():
+        """Создает случайный предмет."""
+        item_type = rn.choice(list(ItemFactory.item_classes.keys()))
+        if item_type == 'potion':
+            effect_type = rn.choice(['heal', 'buff', 'random'])
+            effect = (effect_type, rn.randint(10, 50))
+        elif item_type == 'weapon':
+            effect = rn.randint(10, 50)
+        elif item_type == 'armor':
+            effect = rn.randint(5, 30)
+        else:
+            effect = lambda target: print(f"{target.name} использует предмет.")
+        return ItemFactory.create_item(item_type, name='', effect=effect, price=rn.randint(10, 100), count=rn.randint(1, 5))
+
+class Inventory:
+    def __init__(self):
+        self.items = []  # Список предметов, каждый элемент — это экземпляр Item, Armor или Weapon
+
+    def add_item(self, item):
+        """Добавляет предмет в инвентарь."""
+        for inventory_item in self.items:
+            if inventory_item.name == item.name and isinstance(inventory_item, type(item)):
+                inventory_item.count += item.count
+                print(f"Обновлено количество {inventory_item.name} до {inventory_item.count}")
+                return
+        self.items.append(item)
+        print(f"Добавлен новый предмет: {item.name}")
+
+    def remove_item(self, item_name, quantity=1):
+        """Удаляет предмет из инвентаря или уменьшает его количество."""
+        for inventory_item in self.items:
+            if inventory_item.name == item_name:
+                if inventory_item.count > quantity:
+                    inventory_item.count -= quantity
+                else:
+                    self.items.remove(inventory_item)
+                return
+        print("Такого предмета нет в инвентаре.")
+    
+    def remove_equipment(self, item_name):
+        '''Удаляет оружие и броню из инвентаря'''
+        for inventory_item in self.items:
+            if inventory_item.name == item_name:
+                self.items.remove(inventory_item)
+            return
+        print("Такого предмета нет в инвентаре.")
+
+    def use_item(self, item_name, target):
+        """Использует предмет из инвентаря на указанной цели."""
+        for inventory_item in self.items:
+            if inventory_item.name == item_name:
+                inventory_item.use(target)
+                if inventory_item.count > 1:
+                    inventory_item.count -= 1
+                else:
+                    self.items.remove(inventory_item)
+                return
+        print("Такого предмета нет в инвентаре.")
+
+    def show_inventory(self, player):
+        """Выводит содержимое инвентаря и позволяет использовать предметы на игроке."""
+        inventory = []
+        print("Инвентарь:")
+        if not self.items:
+            print("Инвентарь пуст.")
+        else:
+            for i, item in enumerate(self.items, 1):
+                if item:
+                    print(f"({i}) {item.name}")
+                    inventory.append(item)
+            action = input('Выберите предмет: ')
+            if action == "0":
+                return
+            if action.isdigit() and 1 <= int(action) <= len(inventory):
+                item = inventory[int(action) - 1]
+                self.use_item(item.name, player)
+
+class MiscItem(Item):
+    def __init__(self, name, effect, price, count=1):
+        super().__init__(name, 'misc', effect, price, count)
+
+    def to_dict(self):
+        """Преобразует объект в словарь для добавления в инвентарь."""
+        return {
+            "name": self.name,
+            "effect": self.effect,
+            "effect_type": self.effect_type,
+            "count": self.count
+        }
+    
+    def use(self, target):
+            """Применяет эффект к указанной цели."""
+            if self.count <= 0:
+                print(f"{self.name} больше нет в наличии.")
+                return
+            
+            if callable(self.effect):
+                print(f"Применение эффекта {self.name} на {target.name}.")  # Отладочный вывод
+                self.effect(target)
+
+            self.count -= 1
+            if self.count == 0:
+                print(f"{self.name} закончилось.")
+
+    def repair_effect(self, item, durability):
+        item.durability += durability
+        print(f'Прочность на {item.name} восстановлена на {durability}')
+    
+    def description(self, description):
+        print(description)
+
 
 
