@@ -17,7 +17,7 @@ class Quest:
         self.giver = giver
         self.is_main = is_main
         self.completed = False
-    
+    # Сделать генератор квестов от места действия или персонажа. Или реализовать фабрику
     def update_objective(self, objective):
         """Обновляет статус выполнения этапа квеста"""
         if objective in self.objectives:
