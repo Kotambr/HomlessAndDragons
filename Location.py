@@ -1,8 +1,9 @@
 import random as rn
 from event import BattleEvent
-from NPC import Merchant, Quest, Craftsman, Citizen
+from NPC import Merchant, Quest, Citizen, Blacksmith
 from Charecter import Enemy
 from Boss import Lich, BossBattleEvent
+from Item import ItemFactory
 
 class Location():
     def __init__(self, player, name: str, description: str):
@@ -96,18 +97,7 @@ class CampfireLocation(Location):
     def __init__(self, player, name: str, description: str):
         super().__init__(player, name, description)
         self.battle = BattleEvent(player)
-        self.trader = Merchant(
-            name="Торгаш",
-            inventory=self.create_trader_inventory(),
-            quests=[
-                Quest(
-                    name="Принести 10 грибов",
-                    description="Соберите 10 грибов в лесу и принесите мне.",
-                    reward=50,
-                    condition=lambda p: p.inventory.has_item("Гриб", 10)
-                )
-            ]
-        )
+        self.trader = Merchant(name="Торговец",inventory=Merchant.populate_inventory,quests=None)
         self.events = [{'number': 1, 'name': 'Отдохнуть', 'func': self.rest},
                        {'number': 2, 'name': 'Прогуляться', 'func': self.encounter_enemy},
                        {'number': 3, 'name': 'Поторговать', 'func': self.visit_trader}
@@ -265,9 +255,10 @@ class City(Location):
     '''Город. Локация с большим количеством NPC'''
     def __init__(self, player, name: str, description: str):
         super().__init__(player, name, description)
-        self.merchants = [Merchant(name="Торговец", inventory=self.create_merchant_inventory())]
-        self.craftsmen = [Craftsman(name="Кузнец"), Craftsman(name="Бронник")]
-        self.citizens = [Citizen(name="Горожанин 1"), Citizen(name="Горожанин 2")]
+        self.merchants = Merchant(name="Торговец", inventory = [])  # Сначала создаем объект Merchant с пустым инвентарем
+        self.create_merchant_inventory()  # Затем заполняем его инвентарь
+        self.craftsmen = Blacksmith(name="Кузнец",description='Кузнец, каких свет не ввидывал',actions=None)
+        self.citizens = Citizen(name="Горожанин 1", description='Горожанин 1', actions=None)
         self.events = [
             {'number': 1, 'name': 'Поговорить с торговцем', 'func': self.talk_to_merchant},
             {'number': 2, 'name': 'Поговорить с ремесленником', 'func': self.talk_to_craftsman},
@@ -276,29 +267,32 @@ class City(Location):
 
     def create_merchant_inventory(self):
         """Создает инвентарь для торговца."""
-        return [
-            {"name": "Зелье здоровья", "price": 10},
-            {"name": "Меч", "price": 50},
-            {"name": "Щит", "price": 30}
+        items_for_sale = [
+            ItemFactory.create_item('potion', name='Зелье здоровья', effect=('heal', 20), count=1, price=100),
+            ItemFactory.create_item('potion', name='Зелье силы', effect=('buff', 20), count=1, price=100),
+            ItemFactory.create_item('misc', name='Карта-обманка', effect=lambda target: target.increase_hp(rn.randint(-50, 20)), count=1, price=100),
+            ItemFactory.create_item('misc', name='Карта подземки', effect=lambda target: self.event.incrimer_event('chest'), count=1, price=100),
+            ItemFactory.create_item('misc', name='Странный мешок', effect=lambda target: self.event.incrimer_event('enemy'), count=1, price=100),
+            ItemFactory.create_item('misc', name='Походная книга', effect=lambda target: self.event.incrimer_event('item'), count=1, price=100),
+            ItemFactory.create_item('misc', name='Тухлое яйцо', effect=lambda target: self.event.incrimer_event('nothing'), count=1, price=100),
         ]
+        for item in items_for_sale:
+            self.merchants.inventory.add_item(item)
 
     def talk_to_merchant(self):
         """Взаимодействие с торговцем."""
-        merchant = rn.choice(self.merchants)
-        print(f"Вы встречаете {merchant.name}.")
-        merchant.interact(self.player)
+        print(f"Вы встречаете {self.merchant.name}.")
+        self.merchant.interact(self.player)
 
     def talk_to_craftsman(self):
         """Взаимодействие с ремесленником."""
-        craftsman = rn.choice(self.craftsmen)
-        print(f"Вы встречаете {craftsman.name}.")
-        craftsman.interact(self.player)
+        print(f"Вы встречаете {self.craftsman.name}.")
+        self.craftsman.interact(self.player)
 
     def talk_to_citizen(self):
         """Взаимодействие с горожанином."""
-        citizen = rn.choice(self.citizens)
-        print(f"Вы встречаете {citizen.name}.")
-        citizen.interact(self.player)
+        print(f"Вы встречаете {self.citizen.name}.")
+        self.citizen.interact(self.player)
 
 class TheFort(Location):
     '''Форт. Встречаются задания на мобов, так же есть торговцы'''
@@ -320,7 +314,7 @@ class LocationManager:
             ForestLocation(player, 'Лес', 'Древний, словно сами Лакуны'),
             MountainRegion(player, 'Горы', 'Когда то тут, пали великаны'),
             HiddenSanctuary(player, 'Храм Ушедшего Бога', 'Прихожане, давно не молятся своему Господину'),
-            City(player, "Город", "Большой город с множеством NPC."),
+            City(player, "Город", "Земля мертвых, где живут живые"),
         ]
 
     def enter_location(self, location_name: str):

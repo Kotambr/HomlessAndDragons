@@ -1,6 +1,6 @@
 from Charecter import Enemy
 import random as rn
-from Item import Item
+from Item import ItemFactory
 from weapon import Weapon
 from armor import Armor
 from spell import AttackSpell, HealingSpell
@@ -13,7 +13,7 @@ class Boss(Enemy):
         self.phase = 1  
         self.spells = []
         self.minions = []
-        self.item_class = Item()  # Передаём player в Item
+        self.item_class = ItemFactory()  # Передаём player в Item
         self.actions = {
             "attack": self.attack_enemy,
             "special_attack": self.special_attack,
@@ -102,11 +102,7 @@ class Lich(Boss):
                 {'name': 'Удар', 'effect': self.punch},
                 {'name': 'Костяные Шипы', 'effect': self.special_attack}
             ]
-            self.loot_table = [
-            {"type": "item", "class": Item, "args": {"name": "Зелье здоровья", "effect": lambda p: p.increase_hp(20), "count": 1}},
-            {"type": "weapon", "class": Weapon, "args": {"type_weapon": "Меч", "damage": 30, "weapon_count": 100}},
-            {"type": "armor", "class": Armor, "args": {"armor_count": 50, "absorption": 10}},
-        ]
+            self.loot_table = None
 
     def freeze_player(self, boss, player):
         """Замораживает игрока, снижая его урон."""

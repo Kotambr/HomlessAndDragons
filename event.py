@@ -37,7 +37,6 @@ class Event:
                 return event["name"]
         return "Ничего не произошло."  
     
-    @staticmethod
     def incrimer_event(self, event_name):
         for event in self.events_list:
             if event['name'] == event_name:
@@ -64,9 +63,8 @@ class Event:
         self.clear_console()
 
 class ChestEvent(Event):
-    def __init__(self, player, items):
+    def __init__(self, player):
         super().__init__(player)
-        self.items = items
         self.mimick = [
             self.enemy_factory.create_enemy('Мимик-Сундук', 100, 10, 10),
             self.enemy_factory.create_enemy('Мимик-Бочка', 100, 10, 10),
