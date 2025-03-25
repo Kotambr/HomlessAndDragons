@@ -131,7 +131,7 @@ class Lich(Boss):
     
     def deathWord(self, boss, player):
         '''Наносит большой урон по игроку'''
-        print(f'{boss.name} выкрикивает {'pullum zedha mo'.upper()}')
+        print(f'{boss.name} выкрикивает pullum zedha mo')
         player.hp = rn.randint(min(player.hp), max(player.hp))
 
     def heal(self, amount):

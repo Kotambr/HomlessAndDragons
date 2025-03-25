@@ -116,6 +116,87 @@ class Merchant(NPC):
         player.quests.append(quest)
         print(f"{self.name}: Возьмите это задание: {quest.name}. {quest.description}")
 
+class Citizen(NPC):
+    def __init__(self, name, description, actions=None):
+        super().__init__(name, description, actions)
+        self.questions = [
+            {'ask': 'Как погода?', 'answer': 'Погода как погода. Что за глупый вопрос!?'},
+            {'ask': 'Что нового в городе?', 'answer': 'Ничего особенного, всё как обычно.'},
+            {'ask': 'Где можно найти торговца?', 'answer': 'Торговец обычно находится на центральной площади.'}
+        ]
+        self.phrases = [
+            "Прекрасная погода сегодня, не правда ли?",
+            "Вы слышали последние новости?",
+            "Будьте осторожны, в городе полно разбойников."
+        ]
+        self.quests = [
+            Quest(name="Помощь горожанину", description="Помогите горожанину с его проблемой.", reward=20, condition=lambda p: True)
+        ]
+        self.actions = [
+            {"name": "Задать вопрос", "func": self.ask_of_citizen},
+            {"name": "Поговорить", "func": self.talk_to_citizen},
+            {"name": "Взять квест", "func": self.give_quest}
+        ]
+
+    def ask_of_citizen(self, player):
+        print("Выберите вопрос:")
+        for i, question in enumerate(self.questions, 1):
+            print(f"({i}) {question['ask']}")
+        choice = input("Ваш выбор: ")
+        if choice.isdigit() and 1 <= int(choice) <= len(self.questions):
+            question = self.questions[int(choice) - 1]
+            print(f"Вопрос: {question['ask']}")
+            print(f"Ответ: {question['answer']}")
+        else:
+            print("Неверный выбор. Попробуйте снова.")
+
+    def talk_to_citizen(self, player):
+        print("Выберите фразу:")
+        for i, phrase in enumerate(self.phrases, 1):
+            print(f"({i}) {phrase}")
+        choice = input("Ваш выбор: ")
+        if choice.isdigit() and 1 <= int(choice) <= len(self.phrases):
+            phrase = self.phrases[int(choice) - 1]
+            print(f"{self.name} говорит: {phrase}")
+        else:
+            print("Неверный выбор. Попробуйте снова.")
+
+    def give_quest(self, player):
+        if not self.quests:
+            print(f"{self.name}: У меня для вас нет заданий.")
+            return
+        quest = self.quests.pop(0)
+        player.quests.append(quest)
+        print(f"{self.name}: Возьмите это задание: {quest.name}. {quest.description}")
+
+class Blacksmith(NPC):
+    def __init__(self, name, description, actions=None):
+        super().__init__(name, description, actions)
+
+    def repair(self, player):
+        pass
+
+    def upgrade(self, player):
+        pass
+    
+    def sell(self, player):
+        pass
+
+    def buy(self, player):
+        pass
+    
+    def craft(self, player):
+        pass
+
+    def give_quest(self, player):
+        pass
+
+    def show_items_for_sale(self, player):
+        pass
+
+    def buy_from_player(self, player):
+        pass
+
 class Quest:
     def __init__(self, name, description, reward, condition):
         """
@@ -137,3 +218,9 @@ class Quest:
             print(f"Квест '{self.name}' выполнен!")
             player.gold += self.reward
             print(f"Вы получили {self.reward} монет в награду.")
+
+from Charecter import Player
+
+player = Player('Игрок', 100, 20, 50)
+citizen = Citizen('Прохожий', 'Обычный чел')
+citizen.interact(player)
