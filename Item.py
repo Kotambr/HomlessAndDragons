@@ -134,6 +134,21 @@ class ItemFactory:
             raise ValueError(f"Unknown item type: {item_type}")
         return item_class(**kwargs)
 
+    @staticmethod
+    def create_random_item():
+        """Создает случайный предмет."""
+        item_type = rn.choice(list(ItemFactory.item_classes.keys()))
+        if item_type == 'potion':
+            effect_type = rn.choice(['heal', 'buff', 'random'])
+            effect = (effect_type, rn.randint(10, 50))
+        elif item_type == 'weapon':
+            effect = rn.randint(10, 50)
+        elif item_type == 'armor':
+            effect = rn.randint(5, 30)
+        else:
+            effect = lambda target: print(f"{target.name} использует предмет.")
+        return ItemFactory.create_item(item_type, name='', effect=effect, price=rn.randint(10, 100), count=rn.randint(1, 5))
+
 class Inventory:
     def __init__(self):
         self.items = []  # Список предметов, каждый элемент — это экземпляр Item, Armor или Weapon

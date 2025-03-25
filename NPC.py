@@ -62,14 +62,13 @@ class Merchant(NPC):
         ])
         self.inventory = Inventory()
         self.quests = quests if quests else []
-        self.populate_inventory()
-        self.event = Event(player)
+        lambda: self.populate_inventory()
 
     def populate_inventory(self):
         """Добавляет предметы в инвентарь торговца."""
         items_for_sale = [
-            ItemFactory.create_item('potion', name='Зелье здоровья', effect=lambda target: target.increase_hp(20), count=1, price=100),
-            ItemFactory.create_item('potion', name='Зелье силы', effect=lambda target: target.increase_damage(10), count=1, price=100),
+            ItemFactory.create_item('potion', name='Зелье здоровья', effect=('heal', 20), count=1, price=100),
+            ItemFactory.create_item('potion', name='Зелье силы', effect=('buff', 20), count=1, price=100),
             ItemFactory.create_item('misc', name='Карта-обманка', effect=lambda target: target.increase_hp(rn.randint(-50, 20)), count=1, price=100),
             ItemFactory.create_item('misc', name='Карта подземки', effect=lambda target: self.event.incrimer_event('chest'), count=1, price=100),
             ItemFactory.create_item('misc', name='Странный мешок', effect=lambda target: self.event.incrimer_event('enemy'), count=1, price=100),
@@ -143,13 +142,10 @@ class Citizen(NPC):
             "Вы слышали последние новости?",
             "Будьте осторожны, в городе полно разбойников."
         ]
-        self.quests = [
-            Quest(name="Помощь горожанину", description="Помогите горожанину с его проблемой.", reward=20, condition=lambda p: True)
-        ]
         self.actions = [
             {"name": "Задать вопрос", "func": self.ask_of_citizen},
             {"name": "Поговорить", "func": self.talk_to_citizen},
-            {"name": "Взять квест", "func": self.give_quest}
+            # {"name": "Взять квест", "func": self.give_quest}
         ]
 
     def ask_of_citizen(self, player):
@@ -175,13 +171,13 @@ class Citizen(NPC):
         else:
             print("Неверный выбор. Попробуйте снова.")
 
-    def give_quest(self, player):
-        if not self.quests:
-            print(f"{self.name}: У меня для вас нет заданий.")
-            return
-        quest = self.quests.pop(0)
-        player.quests.append(quest)
-        print(f"{self.name}: Возьмите это задание: {quest.name}. {quest.description}")
+    # def give_quest(self, player):
+    #     if not self.quests:
+    #         print(f"{self.name}: У меня для вас нет заданий.")
+    #         return
+    #     quest = self.quests.pop(0)
+    #     player.quests.append(quest)
+    #     print(f"{self.name}: Возьмите это задание: {quest.name}. {quest.description}")
 
 class Blacksmith(NPC):
     def __init__(self, name, description, actions=None):
@@ -330,19 +326,20 @@ class Blacksmith(NPC):
 
     def give_quest(self, player):
         """Выдаёт квест игроку."""
-        quest_log.add_quest(side_quest)
+        pass
+        
 
         
 
-from Charecter import Player
-quest_log = QuestLog()
+# from Charecter import Player
+# quest_log = QuestLog()
 
-player = Player('Игрок', 100, 20, 50)
-ecet = Event(player)
-cytyzen = Blacksmith('Кузнец', 'Мастер по ковке оружия и брони.')
-cytyzen.interact(player)
-quest_log.show_log()
-quest_log.active_quests[1].update_objective('Доставть чёрт знает где поршень от Лады Веста')
-cytyzen.interact(player) 
+# player = Player('Игрок', 100, 20, 50)
+# ecet = Event(player)
+# cytyzen = Blacksmith('Кузнец', 'Мастер по ковке оружия и брони.')
+# cytyzen.interact(player)
+# quest_log.show_log()
+# quest_log.active_quests[1].update_objective('Доставть чёрт знает где поршень от Лады Веста')
+# cytyzen.interact(player) 
 
 

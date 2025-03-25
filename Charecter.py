@@ -110,7 +110,7 @@ class Enemy(Character):
     def __init__(self, name, hp, damage, manabank, spells = []):
         super().__init__(name, hp, damage, manabank, spells)
         self.alive = True
-        self.inventory.add_poition_enemy(PotionFactory.give_random_potion().to_dict())
+        self.inventory.items = PotionFactory.create_potion(name='Heal', effect=('heal', 20),price=1, count=3)
 
     def take_damage(self, amount):
         total_damage = amount
