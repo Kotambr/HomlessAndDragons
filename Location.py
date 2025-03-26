@@ -255,12 +255,12 @@ class City(Location):
     '''Город. Локация с большим количеством NPC'''
     def __init__(self, player, name: str, description: str):
         super().__init__(player, name, description)
-        self.merchants = Merchant(name="Торговец", inventory = [])  # Сначала создаем объект Merchant с пустым инвентарем
+        self.merchant = Merchant(name="Торговец", inventory = [])  # Сначала создаем объект Merchant с пустым инвентарем
         self.create_merchant_inventory()  # Затем заполняем его инвентарь
         self.craftsmen = Blacksmith(name="Кузнец",description='Кузнец, каких свет не ввидывал',actions=None)
-        self.citizens = Citizen(name="Горожанин 1", description='Горожанин 1', actions=None)
+        self.citizen = Citizen(name="Горожанин 1", description='Горожанин 1', actions=None)
         self.events = [
-            {'number': 1, 'name': 'Поговорить с торговцем', 'func': self.talk_to_merchant},
+            {'number': 1, 'name': 'Поговорить с торговцем', 'func':  self.talk_to_merchant},
             {'number': 2, 'name': 'Поговорить с ремесленником', 'func': self.talk_to_craftsman},
             {'number': 3, 'name': 'Поговорить с горожанином', 'func': self.talk_to_citizen}
         ]
@@ -277,7 +277,7 @@ class City(Location):
             ItemFactory.create_item('misc', name='Тухлое яйцо', effect=lambda target: self.event.incrimer_event('nothing'), count=1, price=100),
         ]
         for item in items_for_sale:
-            self.merchants.inventory.add_item(item)
+           lambda: self.merchants.inventory.add_item(item)
 
     def talk_to_merchant(self):
         """Взаимодействие с торговцем."""
@@ -286,8 +286,8 @@ class City(Location):
 
     def talk_to_craftsman(self):
         """Взаимодействие с ремесленником."""
-        print(f"Вы встречаете {self.craftsman.name}.")
-        self.craftsman.interact(self.player)
+        print(f"Вы встречаете {self.craftsmen.name}.")
+        self.craftsmen.interact(self.player)
 
     def talk_to_citizen(self):
         """Взаимодействие с горожанином."""
@@ -340,8 +340,3 @@ class LocationManager:
         self.list_locations()
         choice = input("Введите название локации, куда хотите отправиться: ")
         self.enter_location(choice)
-
-# from Charecter import Player
-# Playere = Player('1',10,10,10)
-# forest = ForestLocation(Player,None,None)
-# forest.location_loop()
