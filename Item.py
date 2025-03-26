@@ -138,17 +138,32 @@ class ItemFactory:
     def create_random_item():
         """Создает случайный предмет."""
         item_type = rn.choice(list(ItemFactory.item_classes.keys()))
+        default_values = {
+            'name': f"Случайный {item_type.capitalize()} #{rn.randint(1, 9999)}",
+            'effect': None,
+            'price': rn.randint(10, 100),
+            'count': rn.randint(1, 5),
+            'damage': rn.randint(10, 50),  # Для оружия
+            'durability': rn.randint(50, 100),  # Для оружия и брони
+            'defense': rn.randint(5, 30),  # Для брони
+        }
+
+        # Фильтруем параметры в зависимости от типа предмета
         if item_type == 'potion':
             effect_type = rn.choice(['heal', 'buff', 'random'])
-            effect = (effect_type, rn.randint(10, 50))
+            default_values['effect'] = (effect_type, rn.randint(10, 50))
+            filtered_values = {key: default_values[key] for key in ['name', 'effect', 'price', 'count']}
         elif item_type == 'weapon':
-            effect = rn.randint(10, 50)
+            filtered_values = {key: default_values[key] for key in ['name', 'damage', 'price', 'durability']}
         elif item_type == 'armor':
-            effect = rn.randint(5, 30)
-        else:
-            effect = lambda target: print(f"{target.name} использует предмет.")
-        return ItemFactory.create_item(item_type, name='', effect=effect, price=rn.randint(10, 100), count=rn.randint(1, 5))
+            filtered_values = {key: default_values[key] for key in ['name', 'defense', 'price', 'durability']}
+        else:  # Для 'misc'
+            default_values['effect'] = lambda target: print(f"{target.name} использует предмет.")
+            filtered_values = {key: default_values[key] for key in ['name', 'effect', 'price', 'count']}
 
+        # Создаем предмет с использованием фабрики
+        return ItemFactory.create_item(item_type, **filtered_values)
+    
 class Inventory:
     def __init__(self):
         self.items = []  # Список предметов, каждый элемент — это экземпляр Item, Armor или Weapon

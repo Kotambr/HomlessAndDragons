@@ -3,7 +3,7 @@ import os
 from enemy_factory import EnemyFactory, Mage, Warrior, Thief, Jester, Animal, Mimic, EnemyNameGenerator
 import random as rn
 from spell import SpellFactory
-from Item import Item
+from Item import ItemFactory
 from animations import animate_attack, animate_magic, animate_run
 
 class Event:
@@ -11,7 +11,7 @@ class Event:
     def __init__(self, player):
         self.player = player
         self.events_list = [
-            {'name': 'enemy', 'chance': 40},
+            {'name': 'enemy', 'chance': 15},
             {'name': 'chest', 'chance': 20},
             {'name': 'item', 'chance': 25},
             {'name': 'nothing', 'chance': 10},
@@ -74,7 +74,7 @@ class ChestEvent(Event):
         self.game_over = False
         self.events_chest = [
             {'name': 'mimick', 'chance': 20, 'funck': lambda: self.battle.action(rn.choice(self.mimick))},
-            {'name': 'item', 'chance': 30, 'funck': lambda: self.items.find_item(self.player)},
+            {'name': 'item', 'chance': 30, 'funck': lambda: self.player.inventory.add_item(ItemFactory.create_random_item())},
             {'name': 'nothing', 'chance': 30, 'funck': lambda: self.print_message('Вы ничего не нашли')},
             {'name': 'death', 'chance': 1, 'funck': lambda: self.print_message('помер')},
             {'name': 'magic', 'chance': 5, 'funck': lambda: self.player.learn_spell(SpellFactory.create_random_spell())},
