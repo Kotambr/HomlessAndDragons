@@ -57,12 +57,12 @@ class Merchant(NPC):
         """
         super().__init__(name, description="Местный торговец", actions=[
             {"name": "Купить предмет", "func": self.show_items_for_sale},
-            {"name": "Продать предмет", "func": self.buy_from_player},
+            {"name": "Продать предмет", "func":  self.buy_from_player},
             {"name": "Взять квест", "func": self.give_quest},
         ])
         self.inventory = Inventory()
         self.quests = quests if quests else []
-        lambda: self.populate_inventory()
+        self.populate_inventory()
 
     def populate_inventory(self):
         """Добавляет предметы в инвентарь торговца."""
@@ -144,9 +144,8 @@ class Citizen(NPC):
         ]
         self.actions = [
             {"name": "Задать вопрос", "func": self.ask_of_citizen},
-            {"name": "Поговорить", "func": self.talk_to_citizen},
-            # {"name": "Взять квест", "func": self.give_quest}
-        ]
+            {"name": "Поговорить", "func": self.talk_to_citizen}
+            ]
 
     def ask_of_citizen(self, player):
         print("Выберите вопрос:")
@@ -211,7 +210,7 @@ class Blacksmith(NPC):
             self.item_factory.create_item('armor', name='Ботинки', durability=15, absorption=0.05, price=15), 
         ]
         for item in items_for_sale:
-            self.inventory.add_item(item)
+            lambda: self.inventory.add_item(item)
 
     def craft_inventory(self):
             self.craft_system.add_recipe('Лук', [{'name': 'Дерево', 'count': 2}, {'name': 'Стрела', 'count': 2}], 'weapon', damage=10, durability=100, price=50),
